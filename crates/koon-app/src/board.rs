@@ -466,7 +466,7 @@ impl Board {
                     let full = koon_ui::R::new(0.0, 0.0, ui.width, ui.height);
                     let bounds = self.areas.iter().copied().find(|r| r.contains((anchor.x + anchor.w / 2.0, anchor.y + anchor.h / 2.0))).unwrap_or(full);
                     let mic = self.mic();
-                    let tint = mark.as_ref().map_or(look::brand(), look::mark_color);
+                    let tint = mark.as_ref().map_or(look::accent(), look::mark_color);
                     if std::mem::take(&mut self.caret_end) {
                         let n = self.editing.as_ref().map_or(0, |e| e.text.chars().count());
                         let f = ui.s.fields.entry(look::field_key(key(&sid, mid))).or_default();
