@@ -536,13 +536,6 @@ impl Painter for UiPainter {
         self.push([r.x * s, r.y * s, r.w * s, r.h * s], radii.map(|v| v * s), fill, [0.0; 4], [0.0; 4]);
     }
 
-    fn gradient(&mut self, r: R, radii: [f32; 4], top: [f32; 4], bottom: [f32; 4]) {
-        let s = self.scale;
-        let b = bottom.map(|v| (v.clamp(0.0, 1.0) * 255.0).round() as u32);
-        let packed = ((b[0] << 16) | (b[1] << 8) | b[2]) as f32;
-        self.push([r.x * s, r.y * s, r.w * s, r.h * s], radii.map(|v| v * s), top, [0.0, 1.0, packed, s], [0.0; 4]);
-    }
-
     fn border(&mut self, r: R, radii: [f32; 4], color: [f32; 4], width: f32) {
         let s = self.scale;
         self.push([r.x * s, r.y * s, r.w * s, r.h * s], radii.map(|v| v * s), color, [1.0, width * s, 0.0, 0.0], [0.0; 4]);

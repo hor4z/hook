@@ -85,16 +85,9 @@ fn vs(@builtin(vertex_index) vi: u32, a: In) -> Out {
 fn sd_round(p: vec2f, b: vec2f, r4: vec4f) -> f32 {
   var r: f32;
   if (p.x > 0.0) { r = select(r4.y, r4.z, p.y > 0.0); } else { r = select(r4.x, r4.w, p.y > 0.0); }
-  let continuous = r < 0.0;
-  r = min(abs(r), min(b.x, b.y));
+  r = min(r, min(b.x, b.y));
   let q = abs(p) - b + r;
-  let o = max(q, vec2f(0.0));
-  var l = length(o);
-  if (continuous) {
-    let e = o + vec2f(1e-4);
-    l = pow(pow(e.x, 4.2) + pow(e.y, 4.2), 1.0 / 4.2);
-  }
-  return min(max(q.x, q.y), 0.0) + l - r;
+  return min(max(q.x, q.y), 0.0) + length(max(q, vec2f(0.0))) - r;
 }
 
 fn gaussian(x: f32, sigma: f32) -> f32 {
@@ -162,35 +155,25 @@ fn fs(i: Out) -> @location(0) vec4f {
   let half_view = view.size.xy * 0.5;
   let m = clamp(0.5 - sd_round(i.screen - half_view, half_view, vec4f(view.size.z)), 0.0, 1.0);
   let kind = i.p.x;
-  var c = i.color;
+  let c = i.color;
   var a = 0.0;
   if (kind < 0.5) {
     let half_size = i.rect.zw * 0.5;
     let d = sd_round(i.local - i.rect.xy - half_size, half_size, i.radii);
     a = clamp(0.5 - d, 0.0, 1.0);
-    if (i.p.y > 0.5) {
-      let packed = u32(i.p.z);
-      let bottom = vec3f(f32((packed >> 16u) & 255u), f32((packed >> 8u) & 255u), f32(packed & 255u)) / 255.0;
-      let t = clamp((i.local.y - i.rect.y) / max(i.rect.w, 1.0), 0.0, 1.0);
-      var rgb = mix(c.rgb, bottom, t);
-      let rim = 1.0 - smoothstep(0.0, 3.5 * i.p.w, -d);
-      rgb = mix(rgb, vec3f(1.0), rim * (1.0 - t) * 0.06);
-      rgb = rgb * (1.0 - rim * t * 0.14);
-      c = vec4f(rgb, c.a);
-    }
   } else if (kind < 1.5) {
     let half_size = i.rect.zw * 0.5;
     let p = i.local - i.rect.xy - half_size;
     let d = sd_round(p, half_size, i.radii);
     let w = i.p.y;
-    let inner = sd_round(p, max(half_size - vec2f(w), vec2f(0.0)), sign(i.radii) * max(abs(i.radii) - vec4f(w), vec4f(0.0)));
+    let inner = sd_round(p, max(half_size - vec2f(w), vec2f(0.0)), max(i.radii - vec4f(w), vec4f(0.0)));
     a = clamp(0.5 - d, 0.0, 1.0) * (1.0 - clamp(0.5 - inner, 0.0, 1.0));
   } else if (kind < 2.5) {
     let sigma = max(i.p.y * 0.5, 0.01);
     let spread = i.p.z;
     let lower = i.rect.xy - vec2f(spread) + vec2f(0.0, i.p.w);
     let upper = i.rect.xy + i.rect.zw + vec2f(spread) + vec2f(0.0, i.p.w);
-    let r = max(abs(i.radii.x) + spread, 0.0);
+    let r = max(i.radii.x + spread, 0.0);
     a = shadow(lower, upper, i.local, sigma, r);
     let half_box = i.rect.zw * 0.5;
     let inside = sd_round(i.local - i.rect.xy - half_box, half_box, i.radii);

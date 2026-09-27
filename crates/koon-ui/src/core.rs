@@ -70,9 +70,6 @@ impl Face {
 pub trait Painter {
     fn rect(&mut self, r: R, radii: [f32; 4], fill: Rgba);
     fn border(&mut self, r: R, radii: [f32; 4], color: Rgba, width: f32);
-    fn gradient(&mut self, r: R, radii: [f32; 4], top: Rgba, _bottom: Rgba) {
-        self.rect(r, radii, top);
-    }
     fn shadow(&mut self, r: R, radius: f32, blur: f32, spread: f32, dy: f32, color: Rgba);
     fn segment(&mut self, a: (f32, f32), b: (f32, f32), width: f32, color: Rgba);
     fn segment_butt(&mut self, a: (f32, f32), b: (f32, f32), width: f32, color: Rgba) {
@@ -550,19 +547,6 @@ impl<'a> Ui<'a> {
 
     pub fn rect(&mut self, r: R, radius: f32, fill: Rgba) {
         self.rect_radii(r, [radius; 4], fill);
-    }
-
-    pub fn gradient_smooth(&mut self, r: R, radius: f32, top: Rgba, bottom: Rgba) {
-        if top[3] * self.a() <= 0.001 {
-            return;
-        }
-        let m = self.map(r);
-        let a = self.a();
-        self.p.gradient(m, [-radius; 4], alpha(top, a), bottom);
-    }
-
-    pub fn rect_smooth(&mut self, r: R, radius: f32, fill: Rgba) {
-        self.rect_radii(r, [-radius; 4], fill);
     }
 
     pub fn rect_radii(&mut self, r: R, radii: [f32; 4], fill: Rgba) {
