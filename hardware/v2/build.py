@@ -75,7 +75,7 @@ def mat(name,color,rough=.36):
 
 def build():
     global scene,front,back,button,art,hardware,orange
-    scene=bpy.data.scenes.new('KOON V2 - visual prototype')
+    scene=bpy.data.scenes.new('HOOK V2 - visual prototype')
     bpy.context.window.scene=scene
     scene.unit_settings.system='METRIC'
     scene.unit_settings.scale_length=.001
@@ -212,7 +212,7 @@ if __name__=='__main__':
     objects=build()
     report=export(objects)
     setup()
-    bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'koon-device-v2.blend'))
+    bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'hook-device-v2.blend'))
     import runpy
     runpy.run_path(str(HERE/'finish.py'),run_name='__main__')
     print(json.dumps(report))

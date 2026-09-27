@@ -8,7 +8,7 @@ label=ImageFont.truetype(font_path,21)
 small=ImageFont.truetype(font_path,18)
 canvas=Image.new('RGB',(1800,1510),(28,33,40))
 draw=ImageDraw.Draw(canvas)
-draw.text((40,25),'KOON / V2.1',font=title,fill=(248,248,245))
+draw.text((40,25),'HOOK / V2.1',font=title,fill=(248,248,245))
 draw.text((40,78),'Referencia refinada · Naranja mate · 64 × 100 × 34 mm · Blender',font=label,fill=(188,197,205))
 items=[('front','01 / Frente'),('hero','02 / Volumen'),('back','03 / Dorso'),('rear-three-quarter','04 / Rejilla y puerto'),('top','05 / Botón superior'),('exploded','06 / Carcasa separada')]
 for index,(file,text) in enumerate(items):

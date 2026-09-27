@@ -168,7 +168,7 @@ def shade(obj,mat):
 
 def build():
     global scene,front,back,button,art,orange
-    scene=bpy.data.scenes.new('KOON V2.1 - reference refinement')
+    scene=bpy.data.scenes.new('HOOK V2.1 - reference refinement')
     bpy.context.window.scene=scene
     scene.unit_settings.system='METRIC'
     scene.unit_settings.scale_length=.001
@@ -349,7 +349,7 @@ if __name__=='__main__':
     objects=build()
     report=validate(objects)
     studio()
-    bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'koon-device-v2-1.blend'))
+    bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'hook-device-v2-1.blend'))
     render_all()
-    bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'koon-device-v2-1.blend'))
+    bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'hook-device-v2-1.blend'))
     print(json.dumps(report))

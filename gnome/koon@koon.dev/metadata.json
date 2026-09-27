@@ -1,8 +1,0 @@
-{
-  "uuid": "koon@koon.dev",
-  "name": "Koon",
-  "description": "Le cuenta a koon dónde están las ventanas para que las marcas las acompañen.",
-  "shell-version": ["45", "46", "47", "48"],
-  "url": "https://github.com/hor4z/koon",
-  "version": 1
-}

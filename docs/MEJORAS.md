@@ -1,11 +1,11 @@
 # Notas de mejoras
 
-Lo que fui encontrando al probar koon a fondo. Cada punto dice qué problema resuelve y por qué suma al
+Lo que fui encontrando al probar hook a fondo. Cada punto dice qué problema resuelve y por qué suma al
 trabajo con agentes. Están ordenadas por valor, de mayor a menor.
 
 ## 1. El agente ve el estado de tu tanda en vivo
 
-Hoy `koon_wait_feedback` espera a que dejes de escribir y entrega todo junto. Se podría entregar la
+Hoy `hook_wait_feedback` espera a que dejes de escribir y entrega todo junto. Se podría entregar la
 **primera marca apenas la guardás** y seguir mandando las siguientes como mensajes nuevos (el MCP
 soporta notificaciones de progreso). Así el agente empieza a leer código mientras vos seguís marcando, y
 el tiempo total baja mucho en tandas largas.
@@ -20,7 +20,7 @@ La memory guarda una imagen. Para "hacelo como esto" suele faltar:
 
 ## 3. Comparar el resultado contra la memory
 
-Después de que el agente aplica un cambio "como @tarjeta-linear", koon podría capturar la zona nueva y
+Después de que el agente aplica un cambio "como @tarjeta-linear", hook podría capturar la zona nueva y
 mostrarla lado a lado con la memory, con una marca de "no se parece acá" que vuelve al agente. Cerrar ese
 ciclo es lo que hace precisa la reproducción.
 
@@ -52,7 +52,7 @@ voseo, nombres propios, términos en inglés), CPU de 12 núcleos sin GPU, clips
 - Recortar el silencio de los bordes empeoró todo (cortaba palabras en grabaciones con picos): descartado.
 - Queda: probar `turbo` con Vulkan en la RX 580 (debería bajar a 1-2 s y volverse el defecto) y rehacer
   la tabla con cada cambio. Las grabaciones y el script están fuera del repo, en
-  `~/.local/share/koon/bench/` (es la voz del usuario).
+  `~/.local/share/hook/bench/` (es la voz del usuario).
 
 **Servidor de voz.** `voice_server` manda el audio a una URL compatible con la API de transcripción de
 OpenAI o con `whisper-server` de whisper.cpp. Queda levantar ese servidor con GPU y medir `large-v3` y otros

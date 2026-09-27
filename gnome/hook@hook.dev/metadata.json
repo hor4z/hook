@@ -1,0 +1,8 @@
+{
+  "uuid": "hook@hook.dev",
+  "name": "Hook",
+  "description": "Le cuenta a hook dónde están las ventanas para que las marcas las acompañen.",
+  "shell-version": ["45", "46", "47", "48"],
+  "url": "https://github.com/hor4z/hook",
+  "version": 1
+}

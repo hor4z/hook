@@ -1242,6 +1242,56 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dfa686283ad6dd069f105e5ab091b04c62850d3e4cf5d67debad1933f55023df"
 
 [[package]]
+name = "hook-app"
+version = "0.2.0"
+dependencies = [
+ "cpal",
+ "global-hotkey",
+ "hook-core",
+ "hook-ui",
+ "pipewire",
+ "pollster",
+ "serde",
+ "serde_json",
+ "wgpu",
+ "whisper-rs",
+ "winit",
+ "x11rb",
+ "xcap",
+ "zbus",
+]
+
+[[package]]
+name = "hook-core"
+version = "0.2.0"
+dependencies = [
+ "png 0.18.1",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "hook-mcp"
+version = "0.2.0"
+dependencies = [
+ "hook-core",
+ "serde_json",
+]
+
+[[package]]
+name = "hook-ui"
+version = "0.2.0"
+dependencies = [
+ "bytemuck",
+ "harfrust",
+ "kurbo",
+ "read-fonts",
+ "resvg",
+ "tiny-skia",
+ "wgpu",
+]
+
+[[package]]
 name = "icu_collections"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1494,56 +1544,6 @@ name = "khronos_api"
 version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
-
-[[package]]
-name = "koon-app"
-version = "0.2.0"
-dependencies = [
- "cpal",
- "global-hotkey",
- "koon-core",
- "koon-ui",
- "pipewire",
- "pollster",
- "serde",
- "serde_json",
- "wgpu",
- "whisper-rs",
- "winit",
- "x11rb",
- "xcap",
- "zbus",
-]
-
-[[package]]
-name = "koon-core"
-version = "0.2.0"
-dependencies = [
- "png 0.18.1",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "koon-mcp"
-version = "0.2.0"
-dependencies = [
- "koon-core",
- "serde_json",
-]
-
-[[package]]
-name = "koon-ui"
-version = "0.2.0"
-dependencies = [
- "bytemuck",
- "harfrust",
- "kurbo",
- "read-fonts",
- "resvg",
- "tiny-skia",
- "wgpu",
-]
 
 [[package]]
 name = "kurbo"

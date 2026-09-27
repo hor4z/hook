@@ -159,7 +159,7 @@ def build():
 
 
 def export(front, back):
-    for obj, file in ((front, "koon-front.stl"), (back, "koon-back.stl")):
+    for obj, file in ((front, "hook-front.stl"), (back, "hook-back.stl")):
         bpy.ops.object.select_all(action="DESELECT")
         obj.select_set(True)
         bpy.context.view_layer.objects.active = obj
@@ -270,7 +270,7 @@ if __name__ == "__main__":
     front, back = build()
     export(front, back)
     art = graphics()
-    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(HERE, "koon-device.blend"))
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(HERE, "hook-device.blend"))
     if "--render" in args:
         render(front, back, art)
     for obj in (front, back):

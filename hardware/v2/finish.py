@@ -75,4 +75,4 @@ for screen in bpy.data.screens:
             area.spaces.active.region_3d.view_distance=160
             area.spaces.active.region_3d.view_location=(0,0,0)
             area.spaces.active.region_3d.view_rotation=cam.rotation_euler.to_quaternion()
-bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'koon-device-v2.blend'))
+bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'hook-device-v2.blend'))
