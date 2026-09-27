@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            asset: koon-linux-x86_64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            asset: koon-windows-x86_64
+          - os: macos-14
+            target: aarch64-apple-darwin
+            asset: koon-macos-arm64
+          - os: macos-14
+            target: x86_64-apple-darwin
+            asset: koon-macos-x86_64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: System libraries
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libpipewire-0.3-dev libspa-0.2-dev libasound2-dev libclang-dev libxkbcommon-dev libwayland-dev libx11-dev libxcb1-dev libdbus-1-dev
+      - name: Rust
+        run: |
+          rustup toolchain install stable --profile minimal --target ${{ matrix.target }}
+          rustup default stable
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: release-${{ matrix.target }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: release-${{ matrix.target }}-
+      - name: Build
+        run: cargo build --release --locked --target ${{ matrix.target }} -p koon-app -p koon-mcp
+      - name: Package (Linux and macOS)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir dist
+          cp target/${{ matrix.target }}/release/koon target/${{ matrix.target }}/release/koon-mcp dist/
+          cp README.md CHANGELOG.md dist/
+          tar -czf ${{ matrix.asset }}.tar.gz -C dist .
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory dist | Out-Null
+          Copy-Item target/${{ matrix.target }}/release/koon.exe, target/${{ matrix.target }}/release/koon-mcp.exe, README.md, CHANGELOG.md dist/
+          Compress-Archive -Path dist/* -DestinationPath ${{ matrix.asset }}.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}.*
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Notes from the changelog
+        run: |
+          awk -v tag="## ${GITHUB_REF_NAME}" 'index($0, tag) == 1 { on = 1; next } on && /^## / { exit } on' CHANGELOG.md > notes.md
+          test -s notes.md
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "koon $GITHUB_REF_NAME" --notes-file notes.md

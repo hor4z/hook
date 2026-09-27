@@ -1,0 +1,32 @@
+[
+  {
+    "name": "V2_Front",
+    "nonmanifold_edges": 0,
+    "volume_mm3": 18939.860857291904,
+    "dimensions_mm": [
+      64.0,
+      100.0,
+      10.74996566772461
+    ]
+  },
+  {
+    "name": "V2_Back",
+    "nonmanifold_edges": 0,
+    "volume_mm3": 27097.147791017178,
+    "dimensions_mm": [
+      64.0,
+      99.97752380371094,
+      25.700000762939453
+    ]
+  },
+  {
+    "name": "V2_Top_button",
+    "nonmanifold_edges": 0,
+    "volume_mm3": 952.2472031822592,
+    "dimensions_mm": [
+      27.0,
+      7.75,
+      12.0
+    ]
+  }
+]

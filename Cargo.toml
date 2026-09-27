@@ -1,0 +1,30 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2024"
+
+[workspace.dependencies]
+koon-core = { path = "crates/koon-core" }
+koon-ui = { path = "crates/koon-ui" }
+png = "0.18.1"
+pollster = "0.4.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+wgpu = { version = "29.0.4", default-features = false, features = ["std", "parking_lot", "dx12", "metal", "vulkan", "wgsl"] }
+winit = "0.30.13"
+
+[profile.release]
+opt-level = "s"
+lto = "fat"
+codegen-units = 1
+strip = true
+panic = "abort"
+
+[profile.release.package.koon-ui]
+opt-level = 3
+
+[profile.dev.package."*"]
+opt-level = 3

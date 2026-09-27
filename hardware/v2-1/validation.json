@@ -1,0 +1,38 @@
+[
+  {
+    "part": "V21_Front",
+    "nonmanifold_edges": 0,
+    "loose_vertices": 0,
+    "components": 1,
+    "volume_mm3": 17746.04934985344,
+    "dimensions_mm": [
+      63.9999885559082,
+      99.99996948242188,
+      10.75
+    ]
+  },
+  {
+    "part": "V21_Back",
+    "nonmanifold_edges": 0,
+    "loose_vertices": 0,
+    "components": 1,
+    "volume_mm3": 23883.87795178284,
+    "dimensions_mm": [
+      64.0,
+      100.0,
+      25.700000762939453
+    ]
+  },
+  {
+    "part": "V21_Top_button",
+    "nonmanifold_edges": 0,
+    "loose_vertices": 0,
+    "components": 1,
+    "volume_mm3": 611.966448407895,
+    "dimensions_mm": [
+      26.799999237060547,
+      2.75,
+      10.300000190734863
+    ]
+  }
+]

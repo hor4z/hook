@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+    paths-ignore: ["**.md", "docs/**", "assets/**", "playground/**", "gnome/**"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: System libraries
+        run: sudo apt-get update && sudo apt-get install -y libpipewire-0.3-dev libspa-0.2-dev libasound2-dev libclang-dev libxkbcommon-dev libwayland-dev libx11-dev libxcb1-dev libdbus-1-dev
+      - name: Rust
+        run: rustup toolchain install stable --profile minimal --component rustfmt && rustup default stable
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ci-linux-${{ hashFiles('Cargo.lock') }}
+          restore-keys: ci-linux-
+      - name: Format
+        run: cargo fmt --all --check
+      - name: Tests
+        run: cargo test --workspace
+
+  platforms:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ci-${{ matrix.os }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: ci-${{ matrix.os }}-
+      - name: Check
+        run: cargo check --workspace --all-targets

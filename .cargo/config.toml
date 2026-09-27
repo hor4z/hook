@@ -1,0 +1,2 @@
+[alias]
+koon = "run -q -p koon-app --release --"

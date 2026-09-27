@@ -1,0 +1,10 @@
+[package]
+name = "koon-core"
+description = "koon data model, on-disk store and image composition"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+png.workspace = true
+serde.workspace = true
+serde_json.workspace = true
