@@ -1267,7 +1267,7 @@ fn main() {
         modified: HashMap::new(),
         #[cfg(target_os = "linux")]
         shaper: shape::Shaper::new(),
-        css: Css::light(),
+        css: Css::dark(),
         _hotkey: hotkey,
     };
     el.run_app(&mut app).expect("koon");

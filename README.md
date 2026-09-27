@@ -1,7 +1,5 @@
 # koon
 
-<p align="center"><img src="assets/koon-skate.png" alt="El gato de koon saltando en skate sobre fondo naranja" width="600" /></p>
-
 <p align="center"><b>Señalá tu pantalla y decile a tu agente de código qué cambiar.</b></p>
 
 koon es un widget flotante nativo que se queda en tu escritorio mientras trabajás. Cuando algo no te
@@ -26,7 +24,7 @@ se la entrega a Claude Code, a Codex o a cualquier agente compatible con MCP par
    - **Guardar memory** (`M`): arrastrás un recuadro (o hacés un click, como en Marcar área) sobre algo que te gusta (un botón, una tarjeta, un
      layout, de cualquier app o web) y le ponés un nombre. Podés sumar una nota después de dos puntos:
      `tarjeta linear: el borde suave`. Queda guardada como referencia, no como feedback.
-   - **Dictar comentario** (`V`): un click deja el pin y el globo ya te escucha; las barras naranjas siguen
+   - **Dictar comentario** (`V`): un click deja el pin y el globo ya te escucha; las barras verdes siguen
      tu voz. `Enter` corta, koon transcribe en tu máquina y el texto cae en el globo para revisarlo y
      guardarlo con otro `Enter`. El botón del micrófono en cualquier globo también dicta. La primera vez
      descarga el modelo de voz (whisper `small`, ~190 MB) a `~/.local/share/koon/models`; nada sale de tu

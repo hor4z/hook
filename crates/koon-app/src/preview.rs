@@ -22,7 +22,7 @@ fn scene() -> Vec<Mark> {
 pub fn render(path: &str) -> Result<(), String> {
     let gpu = Gpu::headless();
     let (w, h, scale) = (1100.0, 720.0, 2.0);
-    let css = Css::light();
+    let css = Css::dark();
     let marks = scene();
     let mut text = String::from("Que el título use la fuente del sistema");
     let img = gpu.frames((w * scale) as u32, (h * scale) as u32, scale, &css, 1000.0, 12, |ui, _| {
@@ -84,7 +84,7 @@ pub fn render(path: &str) -> Result<(), String> {
 
 pub fn morph(path: &str) -> Result<(), String> {
     let gpu = Gpu::headless();
-    let css = Css::light();
+    let css = Css::dark();
     let (w, h, scale) = (90.0, 400.0, 2.0);
     let shots = [0usize, 1, 2, 3, 4, 6, 9];
     let mut strip = Image::new((w * scale) as u32 * (shots.len() as u32 + 1), (h * scale) as u32);
@@ -140,7 +140,7 @@ pub fn morph(path: &str) -> Result<(), String> {
 pub fn palette(path: &str) -> Result<(), String> {
     let gpu = Gpu::headless();
     let (w, h, scale) = (1100.0, 720.0, 2.0);
-    let css = Css::light();
+    let css = Css::dark();
     let swatch = |a: [u8; 3], b: [u8; 3]| {
         let mut img = Image::new(320, 180);
         for y in 0..180u32 {

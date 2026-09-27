@@ -3,38 +3,12 @@ use koon_ui::{Ease, Face, R, Rgba, Ui, alpha, hex, id};
 use std::f32::consts::TAU;
 
 pub const LOGO: &str = include_str!("../../../assets/logo.svg");
-pub const PILL: (f32, f32) = (52.0, 84.0);
+pub const PILL: (f32, f32) = (52.0, 104.0);
 pub const MARGIN: f32 = 12.0;
 pub const DOCK_W: f32 = 52.0;
 
 pub fn accent() -> Rgba {
-    brand()
-}
-
-const WARM: [&str; 6] = ["#FE5631", "#FF8A3D", "#F4476B", "#FFAA33", "#FF6B57", "#E0452B"];
-
-pub fn warm(id: u32) -> Rgba {
-    hex(WARM[(id.max(1) as usize - 1) % WARM.len()], 1.0)
-}
-
-fn on(c: Rgba) -> Rgba {
-    if 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] > 0.62 { dark() } else { [1.0; 4] }
-}
-
-pub fn brand() -> Rgba {
-    hex("#FE5631", 1.0)
-}
-
-fn body_top() -> Rgba {
-    hex("#F35B3D", 1.0)
-}
-
-fn body_bottom() -> Rgba {
-    hex("#D43722", 1.0)
-}
-
-fn on_brand(a: f32) -> Rgba {
-    [1.0, 1.0, 1.0, a]
+    hex("#86D94F", 1.0)
 }
 
 pub fn blue() -> Rgba {
@@ -42,19 +16,19 @@ pub fn blue() -> Rgba {
 }
 
 pub fn surface() -> Rgba {
-    [1.0, 1.0, 1.0, 0.86]
+    hex("#141414", 0.96)
 }
 
 pub fn edge() -> Rgba {
-    [0.0, 0.0, 0.0, 0.08]
+    [1.0, 1.0, 1.0, 0.09]
 }
 
 pub fn ink() -> Rgba {
-    hex("#16181D", 0.94)
+    [1.0, 1.0, 1.0, 0.94]
 }
 
 pub fn muted() -> Rgba {
-    hex("#16181D", 0.55)
+    [1.0, 1.0, 1.0, 0.52]
 }
 
 pub fn dark() -> Rgba {
@@ -82,10 +56,10 @@ pub fn pill(ui: &mut Ui, v: &PillLook) -> R {
     if v.shadow < 1.0 {
         ui.s.animating = true;
     }
-    ui.gradient_smooth(r, PILL.0 / 2.0, body_top(), body_bottom());
+    ui.rect(r, PILL.0 / 2.0, surface());
     let cx = r.x + r.w / 2.0;
     ui.svg("logo", LOGO, logo_rect(r));
-    bars(ui, cx, r.bottom() - 22.0, v, 1.0);
+    bars(ui, cx, r.bottom() - 26.0, v, 1.0);
     let badge = ui.anim(id(&["pill", "badge"]), if v.open > 0 { 1.0 } else { 0.0 }, 260.0, Ease::Bezier(0.34, 1.56, 0.64, 1.0));
     if badge > 0.01 {
         let n = v.open.max(1).to_string();
@@ -94,9 +68,9 @@ pub fn pill(ui: &mut Ui, v: &PillLook) -> R {
         let (bx, by) = (r.right() - 8.0, r.y + 6.0);
         let b = R::new(bx - d / 2.0, by - d / 2.0, d, d);
         ui.rect(b, d / 2.0, c);
-        ui.border(b, d / 2.0, brand(), 2.0);
+        ui.border(b, d / 2.0, surface(), 2.0);
         let w = ui.measure(&n, Face::Sans600, 10.0 * badge);
-        ui.centered(bx - w / 2.0, by, &n, Face::Sans600, 10.0 * badge, if v.working { dark() } else { [1.0; 4] });
+        ui.centered(bx - w / 2.0, by, &n, Face::Sans600, 10.0 * badge, dark());
         if v.working {
             let t = (ui.now / 1000.0) as f32 * TAU * 0.9;
             ui.arc((bx, by), d / 2.0 + 3.0, t, TAU * 0.3, 1.5, blue());
@@ -125,7 +99,7 @@ pub fn bars(ui: &mut Ui, cx: f32, cy: f32, v: &PillLook, k: f32) {
         };
         let h = h * k;
         let x = cx + (f - 1.0) * 8.0 * k - 2.0 * k;
-        ui.rect(R::new(x, cy - h / 2.0, 4.0 * k, h), 2.0 * k, on_brand(1.0));
+        ui.rect(R::new(x, cy - h / 2.0, 4.0 * k, h), 2.0 * k, accent());
     }
     if v.busy || v.listening {
         ui.s.animating = true;
@@ -171,7 +145,7 @@ pub fn dock_height(up: bool) -> f32 {
 
 pub fn pill_body(ui: &mut Ui, r: R) {
     pill_shadow(ui, r, 1.0);
-    ui.gradient_smooth(r, PILL.0 / 2.0, body_top(), body_bottom());
+    ui.rect(r, PILL.0 / 2.0, surface());
 }
 
 fn pill_shadow(ui: &mut Ui, r: R, k: f32) {
@@ -182,7 +156,7 @@ fn pill_shadow(ui: &mut Ui, r: R, k: f32) {
 
 pub fn logo_rect(pill: R) -> R {
     let cx = pill.x + pill.w / 2.0;
-    R::new((cx - 13.0).round(), (pill.y + 16.0).round(), 26.0, 26.0)
+    R::new((cx - 13.0).round(), (pill.y + 22.0).round(), 26.0, 26.0)
 }
 
 pub fn dock(ui: &mut Ui, v: &DockLook) -> Option<Act> {
@@ -202,13 +176,13 @@ pub fn dock(ui: &mut Ui, v: &DockLook) -> Option<Act> {
         if let Some(k) = v.linger {
             let pill = R::new(v.at.0, v.at.1, PILL.0, PILL.1);
             pill_shadow(ui, pill, k);
-            ui.gradient_smooth(pill, PILL.0 / 2.0, body_top(), body_bottom());
+            ui.rect(pill, PILL.0 / 2.0, surface());
             if k < 1.0 {
                 ui.s.animating = true;
             }
             ui.svg("logo", LOGO, logo_rect(pill));
             ui.push_alpha(dots);
-            bars(ui, pill.x + pill.w / 2.0, pill.bottom() - 22.0, &PillLook::default(), 1.0);
+            bars(ui, pill.x + pill.w / 2.0, pill.bottom() - 26.0, &PillLook::default(), 1.0);
             ui.pop_alpha();
         }
         return None;
@@ -224,7 +198,7 @@ pub fn dock(ui: &mut Ui, v: &DockLook) -> Option<Act> {
     let cx = x + DOCK_W / 2.0;
     ui.svg("logo", LOGO, logo_rect(pill));
     ui.push_alpha(dots);
-    bars(ui, cx, pill.bottom() - 22.0, &PillLook::default(), 1.0);
+    bars(ui, cx, pill.bottom() - 26.0, &PillLook::default(), 1.0);
     ui.pop_alpha();
     let mut out = None;
     let logo = id(&["dock", "logo"]);
@@ -242,7 +216,7 @@ pub fn dock(ui: &mut Ui, v: &DockLook) -> Option<Act> {
     for (i, (act, icon, label, kbd)) in ITEMS.iter().enumerate() {
         if *act == Act::Clear {
             let s = ui.anim_delay(id(&["dock", "sep"]), if v.open { 1.0 } else { 0.0 }, 200.0, 30.0 * i as f64, Ease::Snap);
-            ui.rect(R::new(cx - 10.0 * s, iy + 2.0, 20.0 * s, 1.0), 0.5, on_brand(0.3));
+            ui.rect(R::new(cx - 10.0 * s, iy + 2.0, 20.0 * s, 1.0), 0.5, edge());
             iy += 8.0;
         }
         let key = id(&["dock", label]);
@@ -265,14 +239,14 @@ pub fn dock(ui: &mut Ui, v: &DockLook) -> Option<Act> {
         ui.push_alpha(t);
         ui.push_offset(0.0, (1.0 - t) * if v.up { 8.0 } else { -8.0 });
         if on || hover > 0.0 {
-            ui.rect(cell, 12.0, on_brand(if on { 0.22 } else { 0.12 * hover }));
+            ui.rect(cell, 12.0, [1.0, 1.0, 1.0, if on { 0.12 } else { 0.07 * hover }]);
         }
         let c = if disabled {
-            on_brand(0.25)
+            [1.0, 1.0, 1.0, 0.25]
         } else if on {
-            on_brand(1.0)
+            accent()
         } else {
-            koon_ui::mix(on_brand(0.72), on_brand(1.0), hover)
+            koon_ui::mix(muted(), ink(), hover)
         };
         ui.icon(icon, cell.x + 9.0, cell.y + 9.0, 18.0, c);
         ui.pop_offset();
@@ -305,7 +279,7 @@ fn tip(ui: &mut Ui, key: u64, cell: R, label: &str, kbd: &str, dock_x: f32, area
     let x = if left { dock_x - 10.0 - w } else { dock_x + DOCK_W + 10.0 };
     let r = R::new(x + if left { 6.0 } else { -6.0 } * (1.0 - t), cell.y + 5.0, w, 26.0);
     ui.push_alpha(t);
-    ui.shadow(r, 8.0, 12.0, 0.0, 4.0, [0.0, 0.0, 0.0, 0.14]);
+    ui.shadow(r, 8.0, 12.0, 0.0, 4.0, [0.0, 0.0, 0.0, 0.35]);
     ui.rect(r, 8.0, surface());
     ui.border(r, 8.0, edge(), 1.0);
     let end = ui.centered(r.x + 10.0, r.y + 13.0, label, Face::Sans500, size, ink());
@@ -316,7 +290,7 @@ fn tip(ui: &mut Ui, key: u64, cell: R, label: &str, kbd: &str, dock_x: f32, area
 }
 
 pub fn mark_color(m: &Mark) -> Rgba {
-    if m.status == Status::Taken { blue() } else { warm(m.id) }
+    if m.status == Status::Taken { blue() } else { accent() }
 }
 
 pub fn badge_rect(m: &Mark) -> R {
@@ -370,13 +344,14 @@ pub fn mark(ui: &mut Ui, m: &Mark, a: f32, focus: bool, label: bool) {
     let radii = if m.kind == Kind::Area { [13.0 * s; 4] } else { [13.0 * s, 13.0 * s, 13.0 * s, 3.0] };
     ui.shadow(br, 13.0, 10.0, 0.0, 3.0, [0.0, 0.0, 0.0, 0.35]);
     ui.rect_radii(br, radii, c);
+    ui.border_radii(br, radii, [1.0, 1.0, 1.0, if focus { 0.95 } else { 0.75 }], if focus { 2.5 } else { 2.0 });
     let n = if m.status != Status::Resolved && m.asking().is_some() {
         "?".to_string()
     } else {
         m.id.to_string()
     };
     let w = ui.measure(&n, Face::Sans600, 12.0 * s);
-    ui.centered(br.x + (br.w - w) / 2.0, br.y + br.h / 2.0, &n, Face::Sans600, 12.0 * s, on(c));
+    ui.centered(br.x + (br.w - w) / 2.0, br.y + br.h / 2.0, &n, Face::Sans600, 12.0 * s, dark());
     if m.status == Status::Taken && m.asking().is_none() {
         let t = (ui.now / 1000.0) as f32 * TAU * 0.9;
         ui.arc((br.x + br.w / 2.0, br.y + br.h / 2.0), br.w / 2.0 + 4.0, t, TAU * 0.3, 2.0, blue());
@@ -432,7 +407,7 @@ pub fn thread(ui: &mut Ui, key: u64, anchor: R, bounds: R, m: &Mark, text: &mut 
     let y = (anchor.y - 6.0).clamp(bounds.y + 12.0, (bounds.bottom() - h - 12.0).max(bounds.y + 12.0));
     let r = R::new(x.max(bounds.x + 12.0), y + (1.0 - t) * 6.0, w, h);
     ui.push_alpha(t);
-    ui.shadow(r, 14.0, 26.0, 0.0, 10.0, [0.0, 0.0, 0.0, 0.18]);
+    ui.shadow(r, 14.0, 26.0, 0.0, 10.0, [0.0, 0.0, 0.0, 0.45]);
     ui.rect(r, 14.0, surface());
     ui.border(r, 14.0, edge(), 1.0);
     ui.region(r, id(&["bubble", &key.to_string()]));
@@ -454,11 +429,16 @@ pub fn thread(ui: &mut Ui, key: u64, anchor: R, bounds: R, m: &Mark, text: &mut 
     ui.s.focus = Some(field_key);
     let placeholder = if m.asking().is_some() { "Respondé al agente…" } else { "Responder…" };
     let res = koon_ui::widgets::text_field(ui, field_key, field, text, placeholder, Face::Sans400, 14.0, ink());
+    let hint = ui.baseline(Face::Sans400, 11.0, r.bottom() - 22.0);
+    let end = ui.text(r.x + 14.0, hint, "↵", Face::Mono500, 11.0, ink());
+    let end = ui.text(end + 5.0, hint, "enviar", Face::Sans400, 11.0, muted());
+    let end = ui.text(end + 12.0, hint, "esc", Face::Mono500, 11.0, ink());
+    ui.text(end + 5.0, hint, "cerrar", Face::Sans400, 11.0, muted());
     let del = id(&["thread", "delete", &key.to_string()]);
     let cell = R::new(r.right() - 40.0, r.bottom() - 35.0, 26.0, 26.0);
     let hover = ui.hovered(del);
     if hover {
-        ui.rect(cell, 8.0, [0.0, 0.0, 0.0, 0.06]);
+        ui.rect(cell, 8.0, [1.0, 1.0, 1.0, 0.08]);
         ui.cursor(koon_ui::Cursor::Pointer);
     }
     ui.icon("trash-2", cell.x + 5.0, cell.y + 5.0, 16.0, if hover { hex("#FF7A6B", 1.0) } else { muted() });
@@ -482,7 +462,7 @@ pub fn ask(ui: &mut Ui, m: &Mark, question: &str) {
     let w = lines.iter().map(|l| ui.measure(l, Face::Sans500, 12.0)).fold(0.0, f32::max) + 42.0;
     let h = 12.0 + 18.0 * lines.len() as f32;
     let r = R::new(br.right() + 6.0, br.y + (br.h - 26.0) / 2.0, w, h);
-    ui.shadow(r, 9.0, 12.0, 0.0, 4.0, [0.0, 0.0, 0.0, 0.14]);
+    ui.shadow(r, 9.0, 12.0, 0.0, 4.0, [0.0, 0.0, 0.0, 0.35]);
     ui.rect(r, 9.0, surface());
     ui.border(r, 9.0, alpha(blue(), 0.7), 1.0);
     ui.icon("message-circle-question", r.x + 10.0, r.y + 7.0, 14.0, blue());
@@ -571,7 +551,7 @@ pub fn bubble(ui: &mut Ui, key: u64, anchor: R, bounds: R, text: &mut String, pl
     let y = (anchor.y - 6.0).clamp(bounds.y + 12.0, bounds.bottom() - h - 12.0);
     let r = R::new(x.max(bounds.x + 12.0), y + (1.0 - t) * 6.0, w, h);
     ui.push_alpha(t);
-    ui.shadow(r, 14.0, 26.0, 0.0, 10.0, [0.0, 0.0, 0.0, 0.18]);
+    ui.shadow(r, 14.0, 26.0, 0.0, 10.0, [0.0, 0.0, 0.0, 0.45]);
     ui.rect(r, 14.0, surface());
     ui.border(r, 14.0, edge(), 1.0);
     ui.region(r, id(&["bubble", &key.to_string()]));
@@ -582,10 +562,19 @@ pub fn bubble(ui: &mut Ui, key: u64, anchor: R, bounds: R, text: &mut String, pl
     ui.rect(R::new(r.x + 14.0, r.y + 46.0, r.w - 28.0, 1.0), 0.0, edge());
     let hint = ui.baseline(Face::Sans400, 11.0, r.y + 65.0);
     match mic {
-        Mic::Off => {}
+        Mic::Off => {
+            let end = ui.text(r.x + 14.0, hint, "↵", Face::Mono500, 11.0, ink());
+            let end = ui.text(end + 5.0, hint, "guardar", Face::Sans400, 11.0, muted());
+            let end = ui.text(end + 12.0, hint, "⇧↵", Face::Mono500, 11.0, ink());
+            let end = ui.text(end + 5.0, hint, "y seguir", Face::Sans400, 11.0, muted());
+            let end = ui.text(end + 12.0, hint, "esc", Face::Mono500, 11.0, ink());
+            ui.text(end + 5.0, hint, "cancelar", Face::Sans400, 11.0, muted());
+        }
         Mic::Listening(level) => {
             let end = voice_bars(ui, r.x + 14.0, r.y + 61.0, Some(level), tint);
-            ui.text(end + 4.0, hint, "Escuchando…", Face::Sans400, 11.0, ink());
+            let end = ui.text(end + 4.0, hint, "Escuchando…", Face::Sans400, 11.0, ink());
+            let end = ui.text(end + 12.0, hint, "↵", Face::Mono500, 11.0, ink());
+            ui.text(end + 5.0, hint, "listo", Face::Sans400, 11.0, muted());
         }
         Mic::Busy(label) => {
             let end = voice_bars(ui, r.x + 14.0, r.y + 61.0, None, tint);
@@ -599,7 +588,7 @@ pub fn bubble(ui: &mut Ui, key: u64, anchor: R, bounds: R, text: &mut String, pl
     if live {
         ui.rect(mic_cell, 8.0, koon_ui::alpha(tint, 0.16));
     } else if mic_hover {
-        ui.rect(mic_cell, 8.0, [0.0, 0.0, 0.0, 0.06]);
+        ui.rect(mic_cell, 8.0, [1.0, 1.0, 1.0, 0.08]);
     }
     if mic_hover {
         ui.cursor(koon_ui::Cursor::Pointer);
@@ -616,7 +605,7 @@ pub fn bubble(ui: &mut Ui, key: u64, anchor: R, bounds: R, text: &mut String, pl
     let cell = R::new(r.right() - 40.0, r.y + 52.0, 26.0, 26.0);
     let hover = ui.hovered(del);
     if hover {
-        ui.rect(cell, 8.0, [0.0, 0.0, 0.0, 0.06]);
+        ui.rect(cell, 8.0, [1.0, 1.0, 1.0, 0.08]);
         ui.cursor(koon_ui::Cursor::Pointer);
     }
     ui.icon("trash-2", cell.x + 5.0, cell.y + 5.0, 16.0, if hover { hex("#FF7A6B", 1.0) } else { muted() });
@@ -739,7 +728,7 @@ impl Palette {
 }
 
 fn thumb(ui: &mut Ui, c: &Card, r: R) {
-    ui.rect(r, 8.0, [0.0, 0.0, 0.0, 0.04]);
+    ui.rect(r, 8.0, [1.0, 1.0, 1.0, 0.05]);
     let Some(img) = c.thumb.as_ref() else { return };
     let s = (r.w / img.w as f32).min(r.h / img.h as f32);
     let (w, h) = (img.w as f32 * s, img.h as f32 * s);
@@ -826,9 +815,9 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
     let h = (56.0 + list_h + 36.0).min(area.h - 48.0);
     let r = R::new(area.x + (area.w - w) / 2.0, area.y + (area.h - h) * 0.38 + (1.0 - t) * 8.0, w, h);
     ui.push_alpha(t);
-    ui.rect(area, 0.0, [0.0, 0.0, 0.0, 0.14]);
+    ui.rect(area, 0.0, [0.0, 0.0, 0.0, 0.28]);
     ui.region(area, id(&["palette", "scrim"]));
-    ui.shadow(r, 18.0, 40.0, 0.0, 16.0, [0.0, 0.0, 0.0, 0.22]);
+    ui.shadow(r, 18.0, 40.0, 0.0, 16.0, [0.0, 0.0, 0.0, 0.5]);
     ui.rect(r, 18.0, surface());
     ui.border(r, 18.0, edge(), 1.0);
     ui.region(r, id(&["palette", "panel"]));
@@ -891,7 +880,7 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
             ui.region(cr, ck);
             let hot = ui.hovered(ck);
             if hot {
-                ui.rect(cr, 8.0, [0.0, 0.0, 0.0, 0.05]);
+                ui.rect(cr, 8.0, [1.0, 1.0, 1.0, 0.06]);
                 ui.cursor(koon_ui::Cursor::Pointer);
             }
             let b = ui.baseline(Face::Sans500, 13.0, cr.y + cr.h / 2.0);
@@ -919,7 +908,7 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
                 ui.cursor(koon_ui::Cursor::Pointer);
             }
             if k == p.sel {
-                ui.rect(R::new(cell.x + 4.0, cell.y + 4.0, cell.w - 8.0, cell.h - 8.0), 14.0, [0.0, 0.0, 0.0, 0.05]);
+                ui.rect(R::new(cell.x + 4.0, cell.y + 4.0, cell.w - 8.0, cell.h - 8.0), 14.0, [1.0, 1.0, 1.0, 0.06]);
             }
             let hover = ui.anim(id(&["palette", "fan", &f.path]), if hot || k == p.sel { 1.0 } else { 0.0 }, 280.0, Ease::Bezier(0.24, 1.0, 0.4, 1.0));
             folder(ui, p, f, R::new(cell.x + 16.0, cell.y + 38.0, cell.w - 32.0, 68.0), hover, k);
@@ -951,7 +940,7 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
                 ui.cursor(koon_ui::Cursor::Pointer);
             }
             if Some(k) == sel_row {
-                ui.rect(row, 12.0, [0.0, 0.0, 0.0, 0.06]);
+                ui.rect(row, 12.0, [1.0, 1.0, 1.0, 0.08]);
             }
             thumb(ui, c, R::new(row.x + 8.0, row.y + 6.0, 88.0, row.h - 12.0));
             let b1 = ui.baseline(Face::Sans500, 14.0, row.y + row.h / 2.0 - 9.0);
@@ -983,7 +972,7 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
                 ui.text(cell.x + 29.0, b, "¿Borrar?", Face::Sans500, 12.0, [1.0; 4]);
             } else if ui.hovered(rk) || over {
                 if over {
-                    ui.rect(cell, 8.0, [0.0, 0.0, 0.0, 0.06]);
+                    ui.rect(cell, 8.0, [1.0, 1.0, 1.0, 0.08]);
                 }
                 ui.icon("trash-2", cell.x + 6.0, cell.y + 6.0, 16.0, if over { hex("#E5484D", 1.0) } else { muted() });
             }
@@ -1058,7 +1047,7 @@ pub fn toast(ui: &mut Ui, area: R, text: &str, age: f64) {
     let w = ui.measure(text, Face::Sans500, 13.0) + 48.0;
     let r = R::new(area.x + (area.w - w) / 2.0, area.bottom() - 84.0 + (1.0 - t) * 8.0, w, 36.0);
     ui.push_alpha(t);
-    ui.shadow(r, 18.0, 20.0, 0.0, 8.0, [0.0, 0.0, 0.0, 0.16]);
+    ui.shadow(r, 18.0, 20.0, 0.0, 8.0, [0.0, 0.0, 0.0, 0.4]);
     ui.rect(r, 18.0, surface());
     ui.icon("check", r.x + 14.0, r.y + 10.0, 16.0, accent());
     let base = ui.baseline(Face::Sans500, 13.0, r.y + 18.0);

@@ -111,7 +111,7 @@ fn install_desktop_entry() {
     let spiral = crate::look::LOGO;
     let inner = spiral.find("<path").and_then(|a| spiral.rfind("/>").map(|b| &spiral[a..b + 2])).unwrap_or("");
     let svg = format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect width=\"64\" height=\"64\" rx=\"16\" fill=\"#FE5631\"/><g transform=\"translate(12 12) scale(0.625)\">{inner}</g></svg>\n"
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\"><rect width=\"64\" height=\"64\" rx=\"16\" fill=\"#141414\"/><g transform=\"translate(12 12) scale(0.625)\">{inner}</g></svg>\n"
     );
     if std::fs::read_to_string(&desktop).ok().as_deref() == Some(entry.as_str()) && std::fs::read_to_string(&icon).ok().as_deref() == Some(svg.as_str()) {
         return;
