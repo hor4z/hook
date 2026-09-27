@@ -1,0 +1,9 @@
+[package]
+name = "hook-mcp"
+description = "stdio MCP server that hands hook feedback to coding agents"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+hook-core.workspace = true
+serde_json.workspace = true

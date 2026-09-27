@@ -1,4 +1,4 @@
-# Carcasa de koon
+# Carcasa de hook
 
 - `v1/`: primera aproximación de 60 × 90 × 30 mm.
 - `v2/`: muestra visual de 64 × 100 × 34 mm basada en la referencia, con frente hundido, espalda abombada, rejilla de ranuras verticales, USB-C lateral y botón superior separado.

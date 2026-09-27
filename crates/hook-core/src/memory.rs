@@ -188,7 +188,7 @@ mod tests {
     use super::*;
 
     fn temp(name: &str) -> Store {
-        let root = std::env::temp_dir().join(format!("koon-memory-{name}-{}", now_ms()));
+        let root = std::env::temp_dir().join(format!("hook-memory-{name}-{}", now_ms()));
         Store::at(root)
     }
 

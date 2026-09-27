@@ -21,4 +21,4 @@ report=m.validate((m.front,m.back,m.button))
 if any(p['nonmanifold_edges'] or p['components']!=1 for p in report):
     raise RuntimeError('Final geometry validation failed')
 m.render_all()
-bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'koon-device-v2-1.blend'))
+bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'hook-device-v2-1.blend'))

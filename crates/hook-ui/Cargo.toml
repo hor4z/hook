@@ -1,6 +1,6 @@
 [package]
-name = "koon-ui"
-description = "Minimal immediate-mode UI engine for koon (trimmed from sherpa): core, text, wgpu painter and a text field"
+name = "hook-ui"
+description = "Minimal immediate-mode UI engine for hook (trimmed from sherpa): core, text, wgpu painter and a text field"
 version.workspace = true
 edition.workspace = true
 

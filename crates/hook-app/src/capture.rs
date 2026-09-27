@@ -1,4 +1,4 @@
-use koon_core::Image;
+use hook_core::Image;
 
 #[cfg(not(target_os = "linux"))]
 pub fn monitor(connector: Option<&str>, position: (i32, i32)) -> Result<Image, String> {

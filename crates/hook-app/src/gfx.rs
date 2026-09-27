@@ -1,6 +1,6 @@
-use koon_core::Image;
-use koon_ui::gpu::UiPainter;
-use koon_ui::{Css, Input, Key, Mods, State, Ui};
+use hook_core::Image;
+use hook_ui::gpu::UiPainter;
+use hook_ui::{Css, Input, Key, Mods, State, Ui};
 use std::sync::Arc;
 use winit::keyboard::{Key as WKey, ModifiersState, NamedKey};
 use winit::window::{CursorIcon, Window};
@@ -37,7 +37,7 @@ impl Gpu {
     }
 
     fn step(&self) -> f64 {
-        std::env::var("KOON_STEP").ok().and_then(|v| v.parse().ok()).unwrap_or(120.0)
+        std::env::var("HOOK_STEP").ok().and_then(|v| v.parse().ok()).unwrap_or(120.0)
     }
 
     pub fn headless() -> Gpu {
@@ -200,11 +200,11 @@ impl View {
         self.window.pre_present_notify();
         frame.present();
         self.window.set_cursor(match self.state.cursor {
-            koon_ui::Cursor::Pointer => CursorIcon::Pointer,
-            koon_ui::Cursor::Text => CursorIcon::Text,
-            koon_ui::Cursor::Grab => CursorIcon::Grab,
-            koon_ui::Cursor::Grabbing => CursorIcon::Grabbing,
-            koon_ui::Cursor::Crosshair => CursorIcon::Crosshair,
+            hook_ui::Cursor::Pointer => CursorIcon::Pointer,
+            hook_ui::Cursor::Text => CursorIcon::Text,
+            hook_ui::Cursor::Grab => CursorIcon::Grab,
+            hook_ui::Cursor::Grabbing => CursorIcon::Grabbing,
+            hook_ui::Cursor::Crosshair => CursorIcon::Crosshair,
             _ => CursorIcon::Default,
         });
         let again = self.state.animating || busy;

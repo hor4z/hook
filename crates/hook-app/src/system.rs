@@ -41,7 +41,7 @@ pub fn gnome_shortcut() -> Result<bool, String> {
         Ok(String::from_utf8_lossy(&out.stdout).trim().to_string())
     };
     let mut changed = false;
-    for (slot, name, verb, binding) in [("koon", "Koon", "toggle", "<Control><Alt>k"), ("koon-memories", "Koon memories", "memories", "<Control><Alt>m")] {
+    for (slot, name, verb, binding) in [("hook", "Hook", "toggle", "<Control><Alt>k"), ("hook-memories", "Hook memories", "memories", "<Control><Alt>m")] {
         let command = format!("{} {verb}", exe.display());
         let path = format!("/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/{slot}/");
         let item = format!("{schema}.custom-keybinding:{path}");
@@ -76,13 +76,13 @@ pub fn gnome_shortcut() -> Result<bool, String> {
 }
 
 #[cfg(target_os = "linux")]
-pub const APP_ID: &str = "dev.koon.Koon";
+pub const APP_ID: &str = "dev.hook.Hook";
 
 #[cfg(target_os = "linux")]
 pub fn identity(args: &[String]) {
     install_desktop_entry();
     let scoped = std::fs::read_to_string("/proc/self/cgroup").is_ok_and(|c| c.contains(&format!("app-{APP_ID}")));
-    if scoped || std::env::var_os("KOON_SCOPED").is_some() {
+    if scoped || std::env::var_os("HOOK_SCOPED").is_some() {
         return;
     }
     let Ok(exe) = std::env::current_exe() else { return };
@@ -91,9 +91,9 @@ pub fn identity(args: &[String]) {
         .args(["--user", "--scope", "--quiet", "--collect", &format!("--unit=app-{APP_ID}-{}", std::process::id()), "--"])
         .arg(exe)
         .args(args)
-        .env("KOON_SCOPED", "1")
+        .env("HOOK_SCOPED", "1")
         .exec();
-    eprintln!("koon: no dedicated scope ({err}); captures may fail");
+    eprintln!("hook: no dedicated scope ({err}); captures may fail");
 }
 
 #[cfg(target_os = "linux")]
@@ -105,7 +105,7 @@ fn install_desktop_entry() {
     let icon = data.join(format!("icons/hicolor/scalable/apps/{APP_ID}.svg"));
     let desktop = data.join(format!("applications/{APP_ID}.desktop"));
     let entry = format!(
-        "[Desktop Entry]\nType=Application\nName=Koon\nComment=Señalá la pantalla para tu agente de código\nExec={} %U\nIcon={APP_ID}\nTerminal=false\nCategories=Development;Utility;\nStartupWMClass={APP_ID}\n",
+        "[Desktop Entry]\nType=Application\nName=Hook\nComment=Señalá la pantalla para tu agente de código\nExec={} %U\nIcon={APP_ID}\nTerminal=false\nCategories=Development;Utility;\nStartupWMClass={APP_ID}\n",
         exe.display()
     );
     let spiral = crate::look::LOGO;

@@ -39,7 +39,7 @@ pub fn now_ms() -> u64 {
 
 impl Store {
     pub fn open() -> Store {
-        let root = std::env::var_os("KOON_HOME").map(PathBuf::from).unwrap_or_else(|| data_dir().join("koon"));
+        let root = std::env::var_os("HOOK_HOME").map(PathBuf::from).unwrap_or_else(|| data_dir().join("hook"));
         Store::at(root)
     }
 
@@ -147,7 +147,7 @@ mod tests {
     use crate::model::{Kind, Mark, Status};
 
     fn temp(tag: &str) -> Store {
-        let root = std::env::temp_dir().join(format!("koon-test-{tag}-{}-{}", std::process::id(), now_ms()));
+        let root = std::env::temp_dir().join(format!("hook-test-{tag}-{}-{}", std::process::id(), now_ms()));
         let _ = std::fs::remove_dir_all(&root);
         Store::at(root)
     }

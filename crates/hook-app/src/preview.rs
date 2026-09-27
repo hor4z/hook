@@ -1,7 +1,7 @@
 use crate::gfx::Gpu;
 use crate::look::{self, Act, DockLook, PillLook};
-use koon_core::{Image, Kind, Mark, Status};
-use koon_ui::{Css, R, hex, id};
+use hook_core::{Image, Kind, Mark, Status};
+use hook_ui::{Css, R, hex, id};
 
 fn scene() -> Vec<Mark> {
     let mut pin = Mark::new(1, Kind::Pin, [300.0, 210.0]);
@@ -88,7 +88,7 @@ pub fn morph(path: &str) -> Result<(), String> {
     let (w, h, scale) = (90.0, 400.0, 2.0);
     let shots = [0usize, 1, 2, 3, 4, 6, 9];
     let mut strip = Image::new((w * scale) as u32 * (shots.len() as u32 + 1), (h * scale) as u32);
-    unsafe { std::env::set_var("KOON_STEP", "40") };
+    unsafe { std::env::set_var("HOOK_STEP", "40") };
     let paint = |img: &Image, col: u32, strip: &mut Image| {
         let mut bg = Image::new(img.w, img.h);
         for p in bg.rgba.chunks_exact_mut(4) {
@@ -179,7 +179,7 @@ pub fn palette(path: &str) -> Result<(), String> {
     let mut inside = look::Palette::new(cards());
     inside.dir = "tarjetas".into();
     let mut ask = look::Palette::new(cards());
-    let full = std::env::temp_dir().join("koon-palette-full.png");
+    let full = std::env::temp_dir().join("hook-palette-full.png");
     std::fs::write(&full, swatch([240, 120, 170], [40, 40, 60]).encode_png().map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
     ask.cards[0].full = Some(full);
     ask.asking = Some(0);

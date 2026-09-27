@@ -1,4 +1,4 @@
-use koon_core::Image;
+use hook_core::Image;
 use pipewire as pw;
 use pw::spa;
 use std::cell::RefCell;
@@ -31,7 +31,7 @@ pub fn grab(connectors: &[String]) -> Result<Vec<Option<Image>>, String> {
                 waits.push(Some((proxy, signals)));
             }
             Err(e) => {
-                eprintln!("koon: could not record {c}: {e}");
+                eprintln!("hook: could not record {c}: {e}");
                 waits.push(None);
             }
         }
@@ -138,7 +138,7 @@ fn frames(nodes: &[Option<u32>]) -> Result<Vec<Option<Image>>, String> {
         };
         let stream = pw::stream::StreamBox::new(
             &core,
-            "koon",
+            "hook",
             pw::properties::properties! {
                 *pw::keys::MEDIA_TYPE => "Video",
                 *pw::keys::MEDIA_CATEGORY => "Capture",

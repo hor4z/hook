@@ -1,4 +1,4 @@
-use koon_core::{Author, Entry, Kind, Memory, Say, Session, Status, Store, ipc};
+use hook_core::{Author, Entry, Kind, Memory, Say, Session, Status, Store, ipc};
 use serde_json::{Value, json};
 use std::io::{BufRead, Write};
 use std::time::{Duration, Instant};
@@ -11,15 +11,15 @@ const QUIET: Duration = Duration::from_millis(1500);
 
 fn tools() -> Value {
     json!([
-        { "name": "koon_list_feedback", "description": "List open feedback the user left on screen with koon (pins, freehand strokes, areas), grouped by capture session, with text and coordinates. Cheap: no images.", "inputSchema": { "type": "object", "properties": {} } },
-        { "name": "koon_get_feedback", "description": "Get one feedback session: the annotated screenshot, a zoomed crop per mark and the marks as JSON (logical and physical pixel coordinates). Marks become `taken`. Defaults to the oldest session with pending marks.", "inputSchema": { "type": "object", "properties": { "session": { "type": "string" } } } },
-        { "name": "koon_wait_feedback", "description": "Block until the user finishes a batch of feedback in koon (closes the dock, or stops commenting for a moment and is not typing), then return it like koon_get_feedback. Use it to wait for the user's next instruction.", "inputSchema": { "type": "object", "properties": { "timeout_s": { "type": "integer", "minimum": 1, "maximum": 3600 } } } },
-        { "name": "koon_ask", "description": "Ask the user a question about one mark when the request is ambiguous. It is added to the mark's conversation thread and shown on screen; the user's answer comes back as a pending mark through koon_wait_feedback, with the whole thread.", "inputSchema": { "type": "object", "properties": { "session": { "type": "string" }, "id": { "type": "integer" }, "question": { "type": "string" } }, "required": ["session", "id", "question"] } },
-        { "name": "koon_reply", "description": "Add a message to a mark's conversation thread without closing it (e.g. what you are about to do, or a partial answer).", "inputSchema": { "type": "object", "properties": { "session": { "type": "string" }, "id": { "type": "integer" }, "text": { "type": "string" } }, "required": ["session", "id", "text"] } },
-        { "name": "koon_list_memories", "description": "List the user's koon memories: visual references (a button, a card, a layout...) they saved from any screen to say \"make it like this\". Cheap: names and notes, no images.", "inputSchema": { "type": "object", "properties": {} } },
-        { "name": "koon_move_memory", "description": "Put a memory in a folder (path like \"botones/web\"; empty string takes it out of any folder). Folders organize the user's memories in koon's palette; use it when asked to sort or group them.", "inputSchema": { "type": "object", "properties": { "id": { "type": "string" }, "path": { "type": "string" } }, "required": ["id", "path"] } },
-        { "name": "koon_get_memory", "description": "Get one memory by id or name: its image at full resolution plus the user's note. Use it as an exact visual reference and adapt it to the project's code and design tokens.", "inputSchema": { "type": "object", "properties": { "id": { "type": "string" } }, "required": ["id"] } },
-        { "name": "koon_resolve", "description": "Mark feedback as resolved after applying it; the mark fades out of the user's screen. Omit `ids` to resolve every open mark of the session.", "inputSchema": { "type": "object", "properties": { "session": { "type": "string" }, "ids": { "type": "array", "items": { "type": "integer" } }, "note": { "type": "string" } }, "required": ["session"] } }
+        { "name": "hook_list_feedback", "description": "List open feedback the user left on screen with hook (pins, freehand strokes, areas), grouped by capture session, with text and coordinates. Cheap: no images.", "inputSchema": { "type": "object", "properties": {} } },
+        { "name": "hook_get_feedback", "description": "Get one feedback session: the annotated screenshot, a zoomed crop per mark and the marks as JSON (logical and physical pixel coordinates). Marks become `taken`. Defaults to the oldest session with pending marks.", "inputSchema": { "type": "object", "properties": { "session": { "type": "string" } } } },
+        { "name": "hook_wait_feedback", "description": "Block until the user finishes a batch of feedback in hook (closes the dock, or stops commenting for a moment and is not typing), then return it like hook_get_feedback. Use it to wait for the user's next instruction.", "inputSchema": { "type": "object", "properties": { "timeout_s": { "type": "integer", "minimum": 1, "maximum": 3600 } } } },
+        { "name": "hook_ask", "description": "Ask the user a question about one mark when the request is ambiguous. It is added to the mark's conversation thread and shown on screen; the user's answer comes back as a pending mark through hook_wait_feedback, with the whole thread.", "inputSchema": { "type": "object", "properties": { "session": { "type": "string" }, "id": { "type": "integer" }, "question": { "type": "string" } }, "required": ["session", "id", "question"] } },
+        { "name": "hook_reply", "description": "Add a message to a mark's conversation thread without closing it (e.g. what you are about to do, or a partial answer).", "inputSchema": { "type": "object", "properties": { "session": { "type": "string" }, "id": { "type": "integer" }, "text": { "type": "string" } }, "required": ["session", "id", "text"] } },
+        { "name": "hook_list_memories", "description": "List the user's hook memories: visual references (a button, a card, a layout...) they saved from any screen to say \"make it like this\". Cheap: names and notes, no images.", "inputSchema": { "type": "object", "properties": {} } },
+        { "name": "hook_move_memory", "description": "Put a memory in a folder (path like \"botones/web\"; empty string takes it out of any folder). Folders organize the user's memories in hook's palette; use it when asked to sort or group them.", "inputSchema": { "type": "object", "properties": { "id": { "type": "string" }, "path": { "type": "string" } }, "required": ["id", "path"] } },
+        { "name": "hook_get_memory", "description": "Get one memory by id or name: its image at full resolution plus the user's note. Use it as an exact visual reference and adapt it to the project's code and design tokens.", "inputSchema": { "type": "object", "properties": { "id": { "type": "string" } }, "required": ["id"] } },
+        { "name": "hook_resolve", "description": "Mark feedback as resolved after applying it; the mark fades out of the user's screen. Omit `ids` to resolve every open mark of the session.", "inputSchema": { "type": "object", "properties": { "session": { "type": "string" }, "ids": { "type": "array", "items": { "type": "integer" } }, "note": { "type": "string" } }, "required": ["session"] } }
     ])
 }
 
@@ -140,7 +140,7 @@ impl Server {
     }
 
     fn deliver(&self, s: Session) -> Value {
-        let mut content = vec![json!({ "type": "text", "text": format!("{}\n{}\nApply the requested changes, then call koon_resolve with this session id.", describe(&s), marks_json(&s)) })];
+        let mut content = vec![json!({ "type": "text", "text": format!("{}\n{}\nApply the requested changes, then call hook_resolve with this session id.", describe(&s), marks_json(&s)) })];
         let png = |name: &str| std::fs::read(self.store.file(&s.id, name)).ok();
         if let Some(bytes) = s.preview.as_deref().or(s.annotated.as_deref()).and_then(png) {
             content.push(json!({ "type": "image", "data": base64(&bytes), "mimeType": "image/png" }));
@@ -179,19 +179,19 @@ impl Server {
     fn call(&mut self, name: &str, args: &Value) -> Value {
         let s = |k: &str| args.get(k).and_then(Value::as_str);
         match name {
-            "koon_list_feedback" => {
+            "hook_list_feedback" => {
                 let open = self.open();
                 if open.is_empty() {
-                    return text("no open feedback. Ask the user to mark the screen with koon (Ctrl+Alt+K) or call koon_wait_feedback.");
+                    return text("no open feedback. Ask the user to mark the screen with hook (Ctrl+Alt+K) or call hook_wait_feedback.");
                 }
                 text(open.iter().map(describe).collect::<Vec<_>>().join("\n"))
             }
-            "koon_get_feedback" => match self.pick(s("session")) {
+            "hook_get_feedback" => match self.pick(s("session")) {
                 Some(session) if session.open().next().is_some() => self.deliver(session),
                 Some(session) => text(format!("session {} has no open marks", session.id)),
                 None => text("no open feedback"),
             },
-            "koon_wait_feedback" => {
+            "hook_wait_feedback" => {
                 let timeout = Duration::from_secs(args.get("timeout_s").and_then(Value::as_u64).unwrap_or(600).clamp(1, 3600));
                 let start = Instant::now();
                 let mut seen: Option<(usize, Instant)> = None;
@@ -216,11 +216,11 @@ impl Server {
                     std::thread::sleep(Duration::from_millis(100));
                 }
             }
-            "koon_ask" | "koon_reply" => {
+            "hook_ask" | "hook_reply" => {
                 let (Some(sid), Some(mid), Some(msg)) = (s("session"), args.get("id").and_then(Value::as_u64), s("question").or(s("text"))) else {
                     return failure("session, id and question/text are required");
                 };
-                let say = if name == "koon_ask" { Say::Question } else { Say::Reply };
+                let say = if name == "hook_ask" { Say::Question } else { Say::Reply };
                 let msg = msg.to_string();
                 match self.store.update(sid, |s| {
                     if let Some(m) = s.mark_mut(mid as u32) {
@@ -231,7 +231,7 @@ impl Server {
                     Ok(_) => {
                         notify();
                         text(if say == Say::Question {
-                            format!("asked on #{mid}; the user's reply comes back through koon_wait_feedback")
+                            format!("asked on #{mid}; the user's reply comes back through hook_wait_feedback")
                         } else {
                             format!("replied on #{mid}")
                         })
@@ -239,7 +239,7 @@ impl Server {
                     Err(e) => failure(format!("cannot update session {sid}: {e}")),
                 }
             }
-            "koon_resolve" => {
+            "hook_resolve" => {
                 let Some(id) = s("session") else { return failure("session is required") };
                 let ids: Option<Vec<u32>> = args.get("ids").and_then(Value::as_array).map(|a| a.iter().filter_map(Value::as_u64).map(|v| v as u32).collect());
                 let note = s("note").map(str::to_string);
@@ -260,14 +260,14 @@ impl Server {
                     Err(e) => failure(format!("cannot update session {id}: {e}")),
                 }
             }
-            "koon_list_memories" => {
+            "hook_list_memories" => {
                 let all = self.store.memories();
                 if all.is_empty() {
-                    return text("no memories yet. The user saves them from koon's dock (Guardar memory) by marking any part of the screen.");
+                    return text("no memories yet. The user saves them from hook's dock (Guardar memory) by marking any part of the screen.");
                 }
                 text(all.iter().map(memory_line).collect::<Vec<_>>().join("\n"))
             }
-            "koon_move_memory" => {
+            "hook_move_memory" => {
                 let Some(key) = s("id") else { return failure("id is required") };
                 let Some(mem) = self.store.memory(key) else { return failure(format!("no memory named {key}")) };
                 match self.store.move_memory(&mem.id, s("path").unwrap_or("")) {
@@ -278,7 +278,7 @@ impl Server {
                     Err(e) => failure(format!("cannot move {}: {e}", mem.id)),
                 }
             }
-            "koon_get_memory" => {
+            "hook_get_memory" => {
                 let Some(key) = s("id") else { return failure("id is required") };
                 let Some(mem) = self.store.memory(key) else { return failure(format!("no memory named {key}")) };
                 let mut content = vec![json!({ "type": "text", "text": memory_line(&mem) })];
@@ -302,8 +302,8 @@ impl Server {
                 json!({
                     "protocolVersion": version,
                     "capabilities": { "tools": {} },
-                    "serverInfo": { "name": "koon", "version": env!("CARGO_PKG_VERSION") },
-                    "instructions": "koon lets the user point at their screen: pins with comments, freehand strokes and areas over a screenshot. They can also save memories (visual references from any screen) and mention them as @name; referenced memories come attached to the feedback. Call koon_get_feedback (or koon_wait_feedback to wait for the next one), look at the annotated screenshot and crops, map each mark to the code that renders it, apply the change, then koon_resolve."
+                    "serverInfo": { "name": "hook", "version": env!("CARGO_PKG_VERSION") },
+                    "instructions": "hook lets the user point at their screen: pins with comments, freehand strokes and areas over a screenshot. They can also save memories (visual references from any screen) and mention them as @name; referenced memories come attached to the feedback. Call hook_get_feedback (or hook_wait_feedback to wait for the next one), look at the annotated screenshot and crops, map each mark to the code that renders it, apply the change, then hook_resolve."
                 })
             }
             "ping" => json!({}),
@@ -344,10 +344,10 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use koon_core::Mark;
+    use hook_core::Mark;
 
     fn server(tag: &str) -> Server {
-        let root = std::env::temp_dir().join(format!("koon-mcp-{tag}-{}", std::process::id()));
+        let root = std::env::temp_dir().join(format!("hook-mcp-{tag}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         Server { store: Store::at(root) }
     }
@@ -384,17 +384,17 @@ mod tests {
     fn get_takes_marks_and_resolve_closes_them() {
         let mut srv = server("flow");
         let s = seed(&srv.store);
-        let listed = srv.call("koon_list_feedback", &json!({}));
+        let listed = srv.call("hook_list_feedback", &json!({}));
         let t = listed["content"][0]["text"].as_str().unwrap();
         assert!(t.contains("#1 pin at (100,50) on ? pending \"Bigger Button\""), "{t}");
-        let got = srv.call("koon_get_feedback", &json!({}));
+        let got = srv.call("hook_get_feedback", &json!({}));
         assert!(got["content"][0]["text"].as_str().unwrap().contains("\"bounds_px\":[200.0,100.0,0.0,0.0]"));
         assert_eq!(srv.store.load(&s.id).unwrap().marks[0].status, Status::Taken);
-        srv.call("koon_resolve", &json!({ "session": s.id, "note": "listo" }));
+        srv.call("hook_resolve", &json!({ "session": s.id, "note": "listo" }));
         let after = srv.store.load(&s.id).unwrap();
         assert_eq!(after.marks[0].status, Status::Resolved);
         assert_eq!(after.marks[0].note.as_deref(), Some("listo"));
-        assert!(srv.call("koon_list_feedback", &json!({}))["content"][0]["text"].as_str().unwrap().starts_with("no open feedback"));
+        assert!(srv.call("hook_list_feedback", &json!({}))["content"][0]["text"].as_str().unwrap().starts_with("no open feedback"));
         let _ = std::fs::remove_dir_all(&srv.store.root);
     }
 
@@ -402,9 +402,9 @@ mod tests {
     fn wait_returns_immediately_when_feedback_is_pending() {
         let mut srv = server("wait");
         seed(&srv.store);
-        let r = srv.call("koon_wait_feedback", &json!({ "timeout_s": 1 }));
+        let r = srv.call("hook_wait_feedback", &json!({ "timeout_s": 1 }));
         assert!(r["content"][0]["text"].as_str().unwrap().contains("Bigger Button"));
-        let r = srv.call("koon_wait_feedback", &json!({ "timeout_s": 1 }));
+        let r = srv.call("hook_wait_feedback", &json!({ "timeout_s": 1 }));
         assert_eq!(r["content"][0]["text"], "no new feedback before the timeout");
         let _ = std::fs::remove_dir_all(&srv.store.root);
     }
@@ -412,17 +412,17 @@ mod tests {
     #[test]
     fn memories_are_listed_fetched_and_attached_when_mentioned() {
         let mut srv = server("memories");
-        assert!(srv.call("koon_list_memories", &json!({}))["content"][0]["text"].as_str().unwrap().starts_with("no memories yet"));
-        let img = koon_core::Image::new(30, 10);
+        assert!(srv.call("hook_list_memories", &json!({}))["content"][0]["text"].as_str().unwrap().starts_with("no memories yet"));
+        let img = hook_core::Image::new(30, 10);
         srv.store.save_memory("Tarjeta Linear", "el borde suave", &img, None).unwrap();
-        let list = srv.call("koon_list_memories", &json!({}));
+        let list = srv.call("hook_list_memories", &json!({}));
         assert_eq!(list["content"][0]["text"], "@tarjeta-linear «Tarjeta Linear» 30x10 — \"el borde suave\"");
-        let moved = srv.call("koon_move_memory", &json!({ "id": "tarjeta-linear", "path": "tarjetas/" }));
+        let moved = srv.call("hook_move_memory", &json!({ "id": "tarjeta-linear", "path": "tarjetas/" }));
         assert_eq!(moved["content"][0]["text"], "@tarjeta-linear «Tarjeta Linear» in tarjetas/ 30x10 — \"el borde suave\"");
-        srv.call("koon_move_memory", &json!({ "id": "tarjeta-linear", "path": "" }));
-        let got = srv.call("koon_get_memory", &json!({ "id": "Tarjeta Linear" }));
+        srv.call("hook_move_memory", &json!({ "id": "tarjeta-linear", "path": "" }));
+        let got = srv.call("hook_get_memory", &json!({ "id": "Tarjeta Linear" }));
         assert_eq!(got["content"][1]["type"], "image");
-        assert_eq!(srv.call("koon_get_memory", &json!({ "id": "nada" }))["isError"], true);
+        assert_eq!(srv.call("hook_get_memory", &json!({ "id": "nada" }))["isError"], true);
 
         let mut s = srv.store.create([1000.0, 800.0], 1.0).unwrap();
         let mut m = Mark::new(1, Kind::Pin, [10.0, 10.0]);
@@ -435,7 +435,7 @@ mod tests {
         picked.status = Status::Pending;
         s.marks.push(picked);
         srv.store.save(&s).unwrap();
-        let fb = srv.call("koon_get_feedback", &json!({}));
+        let fb = srv.call("hook_get_feedback", &json!({}));
         let items = fb["content"].as_array().unwrap();
         let refs: Vec<&str> = items.iter().filter_map(|c| c["text"].as_str()).filter(|t| t.starts_with("memory referenced")).collect();
         assert_eq!(refs.len(), 1, "{refs:?}");

@@ -1,20 +1,20 @@
 [package]
-name = "koon-app"
-description = "koon floating widget and screen annotation overlay"
+name = "hook-app"
+description = "hook floating widget and screen annotation overlay"
 version.workspace = true
 edition.workspace = true
 
 [[bin]]
-name = "koon"
+name = "hook"
 path = "src/main.rs"
 
 [dependencies]
 global-hotkey = "0.7"
-koon-core.workspace = true
+hook-core.workspace = true
 pollster.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-koon-ui.workspace = true
+hook-ui.workspace = true
 wgpu.workspace = true
 winit.workspace = true
 cpal = "0.18"

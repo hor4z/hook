@@ -1,7 +1,7 @@
 use crate::look::{self, Act, BubbleOut, DockLook, Mic, Palette, PaletteOut};
 use crate::voice::{Phase, Take};
-use koon_core::{Author, Entry, Kind, Mark, Say, Session, Status};
-use koon_ui::{Cursor, Key, Ui, id};
+use hook_core::{Author, Entry, Kind, Mark, Say, Session, Status};
+use hook_ui::{Cursor, Key, Ui, id};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Tool {
@@ -61,7 +61,7 @@ pub struct Snap {
 }
 
 pub struct Board {
-    pub areas: Vec<koon_ui::R>,
+    pub areas: Vec<hook_ui::R>,
     pub shown: Vec<Shown>,
     pub draft: Option<Session>,
     pub armed: Option<Tool>,
@@ -367,13 +367,13 @@ impl Board {
                     if m.status == Status::Resolved && !holding { 0.0 } else { 1.0 },
                     450.0,
                     if done { 2600.0 } else { 0.0 },
-                    koon_ui::Ease::Css,
+                    hook_ui::Ease::Css,
                 );
                 if a > 0.01 {
                     alive = true;
                 }
                 let k = key(&s.id, m.id);
-                let reveal = ui.anim(id(&["label", &k.to_string()]), if review || ui.hovered(k) { 1.0 } else { 0.0 }, 160.0, koon_ui::Ease::Css);
+                let reveal = ui.anim(id(&["label", &k.to_string()]), if review || ui.hovered(k) { 1.0 } else { 0.0 }, 160.0, hook_ui::Ease::Css);
                 look::mark(ui, m, a, focus, false);
                 let asked = m.status != Status::Resolved && m.asking().is_some();
                 if asked && !focus {
@@ -419,7 +419,7 @@ impl Board {
         }
         if let Some(sn) = self.snap.as_mut() {
             let b = sn.boxes[sn.idx];
-            let r = koon_ui::R::new(b[0], b[1], b[2], b[3]);
+            let r = hook_ui::R::new(b[0], b[1], b[2], b[3]);
             ui.region(r, id(&["snap", &sn.mid.to_string()]));
             sn.wheel += ui.input.wheel.1;
             let step = if sn.wheel >= 1.0 {
@@ -448,7 +448,7 @@ impl Board {
             let anchor = mark.as_ref().map(look::badge_rect);
             match anchor {
                 Some(anchor) if self.editing.as_ref().is_some_and(|e| e.reply) => {
-                    let full = koon_ui::R::new(0.0, 0.0, ui.width, ui.height);
+                    let full = hook_ui::R::new(0.0, 0.0, ui.width, ui.height);
                     let bounds = self.areas.iter().copied().find(|r| r.contains((anchor.x + anchor.w / 2.0, anchor.y + anchor.h / 2.0))).unwrap_or(full);
                     let e = self.editing.as_mut().expect("editing");
                     if let Some(how) = look::thread(ui, key(&sid, mid), anchor, bounds, mark.as_ref().expect("mark"), &mut e.text) {
@@ -463,7 +463,7 @@ impl Board {
                     } else {
                         "Editar comentario"
                     };
-                    let full = koon_ui::R::new(0.0, 0.0, ui.width, ui.height);
+                    let full = hook_ui::R::new(0.0, 0.0, ui.width, ui.height);
                     let bounds = self.areas.iter().copied().find(|r| r.contains((anchor.x + anchor.w / 2.0, anchor.y + anchor.h / 2.0))).unwrap_or(full);
                     let mic = self.mic();
                     let tint = mark.as_ref().map_or(look::accent(), look::mark_color);
@@ -586,7 +586,7 @@ impl Board {
             }
         }
         if !had_bubble && self.drawing.is_none() && self.palette.is_none() {
-            let plain = |m: koon_ui::Mods| !(m.ctrl || m.meta || m.alt);
+            let plain = |m: hook_ui::Mods| !(m.ctrl || m.meta || m.alt);
             if ui.key(Key::Escape).is_some() {
                 if self.armed.is_some() {
                     self.armed = None;
@@ -610,7 +610,7 @@ impl Board {
                 self.armed = Some(Tool::Voice);
             }
         }
-        let full = koon_ui::R::new(0.0, 0.0, ui.width, ui.height);
+        let full = hook_ui::R::new(0.0, 0.0, ui.width, ui.height);
         if let Some((text, at)) = self.notice.clone() {
             let area = self.areas.first().copied().unwrap_or(full);
             let age = ui.now - at;

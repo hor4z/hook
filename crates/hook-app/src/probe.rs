@@ -21,7 +21,7 @@ pub fn run() {
                         let px = (img.w * img.h) as f32;
                         let black = img.rgba.chunks_exact(4).filter(|p| p[0] < 6 && p[1] < 6 && p[2] < 6).count() as f32;
                         println!("  {n}: {}x{} black {:.1}%", img.w, img.h, black / px * 100.0);
-                        if let Some(dir) = std::env::var_os("KOON_PROBE_SAVE") {
+                        if let Some(dir) = std::env::var_os("HOOK_PROBE_SAVE") {
                             let _ = std::fs::write(std::path::Path::new(&dir).join(format!("{n}.png")), img.encode_png().unwrap_or_default());
                         }
                     }
@@ -50,7 +50,7 @@ pub fn run() {
             .and_then(|r| r.reply().ok())
             .map(|r| String::from_utf8_lossy(&r.value).replace('\0', " "))
             .unwrap_or_default();
-        if !cls.contains("dev.koon.Koon") {
+        if !cls.contains("dev.hook.Hook") {
             continue;
         }
         seen += 1;
@@ -73,12 +73,12 @@ pub fn run() {
             .map(|r| r.rectangles.iter().map(|x| (x.x, x.y, x.width, x.height)).collect::<Vec<_>>());
         println!("window {w:#x} {cls:?} geo {geo:?} above {} type {kind:?} input {:?}", states.contains(&above), input);
     }
-    println!("koon windows: {seen}");
+    println!("hook windows: {seen}");
 }
 
 mod e2e {
     use super::atom;
-    use koon_core::{Status, Store};
+    use hook_core::{Status, Store};
     use std::time::Duration;
     use x11rb::connection::Connection;
     use x11rb::protocol::shape::{self, SK};
@@ -102,7 +102,7 @@ mod e2e {
                 w.3.iter().any(|r| x >= ox + r.0 && x < ox + r.0 + r.2 as i16 && y >= oy + r.1 && y < oy + r.1 + r.3 as i16)
             })
         }
-        fn focused_koon(&self) -> bool {
+        fn focused_hook(&self) -> bool {
             let Some(f) = self.c.get_input_focus().ok().and_then(|r| r.reply().ok()).map(|r| r.focus) else {
                 return false;
             };
@@ -110,7 +110,7 @@ mod e2e {
         }
         fn safe_click(&self, x: i16, y: i16) -> Result<(), String> {
             if !self.owns(x, y) {
-                return Err(format!("({x},{y}) does not belong to koon; aborting to avoid touching other apps"));
+                return Err(format!("({x},{y}) does not belong to hook; aborting to avoid touching other apps"));
             }
             self.click(x, y);
             Ok(())
@@ -141,7 +141,7 @@ mod e2e {
         }
         fn drag(&self, from: (i16, i16), to: (i16, i16)) -> Result<(), String> {
             if !self.owns(from.0, from.1) {
-                return Err(format!("({},{}) does not belong to koon; aborting", from.0, from.1));
+                return Err(format!("({},{}) does not belong to hook; aborting", from.0, from.1));
             }
             self.motion(from.0, from.1);
             wait(60);
@@ -232,7 +232,7 @@ mod e2e {
                     .and_then(|r| r.reply().ok())
                     .map(|r| String::from_utf8_lossy(&r.value).replace('\0', " "))
                     .unwrap_or_default();
-                if !cls.contains("dev.koon.Koon") {
+                if !cls.contains("dev.hook.Hook") {
                     continue;
                 }
                 let Some(g) = self.c.get_geometry(w).ok().and_then(|r| r.reply().ok()) else { continue };
@@ -250,12 +250,12 @@ mod e2e {
         }
     }
 
-    fn latest(n: usize) -> Vec<koon_core::Session> {
+    fn latest(n: usize) -> Vec<hook_core::Session> {
         let all = Store::open().list();
         all.into_iter().rev().take(n).collect()
     }
 
-    fn marks_since(before: u64) -> Vec<(koon_core::Session, koon_core::Mark)> {
+    fn marks_since(before: u64) -> Vec<(hook_core::Session, hook_core::Mark)> {
         Store::open()
             .list()
             .into_iter()
@@ -296,7 +296,7 @@ mod e2e {
         let snapped = marks_since(start)
             .into_iter()
             .rev()
-            .find(|(_, m)| m.kind == koon_core::Kind::Area && m.text.is_empty() && m.status.open())
+            .find(|(_, m)| m.kind == hook_core::Kind::Area && m.text.is_empty() && m.status.open())
             .map(|(_, m)| m.bounds());
         let ca = x.c.translate_coordinates(card, x.root, 0, 0).ok().and_then(|r| r.reply().ok()).ok_or("card not mapped")?;
         let dock = open_dock(x)?;
@@ -315,7 +315,7 @@ mod e2e {
         let grown = marks_since(start)
             .into_iter()
             .rev()
-            .find(|(_, m)| m.kind == koon_core::Kind::Area && m.text.is_empty() && m.status.open())
+            .find(|(_, m)| m.kind == hook_core::Kind::Area && m.text.is_empty() && m.status.open())
             .map(|(_, m)| m.bounds());
         let card_at = [(ca.dst_x - ov.0) as f32, (ca.dst_y - ov.1) as f32, 340.0, 180.0];
         check(
@@ -325,14 +325,14 @@ mod e2e {
         );
         let _ = x.c.destroy_window(page);
         let _ = x.c.flush();
-        for (s, m) in marks_since(start).into_iter().filter(|(_, m)| m.kind == koon_core::Kind::Area && m.text.is_empty()) {
+        for (s, m) in marks_since(start).into_iter().filter(|(_, m)| m.kind == hook_core::Kind::Area && m.text.is_empty()) {
             let _ = Store::open().update(&s.id, |s| {
                 if let Some(m) = s.mark_mut(m.id) {
                     m.status = Status::Resolved;
                 }
             });
         }
-        let _ = koon_core::ipc::send("reload");
+        let _ = hook_core::ipc::send("reload");
         let expect = [(bx.0 - ov.0) as f32, (bx.1 - ov.1) as f32, 150.0, 44.0];
         check(
             "a single click snaps to the element under the pointer",
@@ -347,14 +347,14 @@ mod e2e {
         let (c, screen) = x11rb::connect(None).map_err(|e| e.to_string())?;
         let root = c.setup().roots[screen].root;
         let x = X { c, root };
-        let start = koon_core::store::now_ms();
+        let start = hook_core::store::now_ms();
         let wins = x.windows();
         let mut overlays: Vec<_> = wins.iter().filter(|w| w.2.2 > 400).map(|w| (w.0, w.2)).collect();
         overlays.sort_by_key(|o| o.1.0);
         let (_, ov) = *overlays.first().ok_or("no overlay")?;
         let mut check = |name: &str, ok: bool, detail: String| println!("{} {name} — {detail}", if ok { "✅" } else { "❌" });
         snap_check(&x, ov, start, &mut check)?;
-        let _ = koon_core::ipc::send("toggle");
+        let _ = hook_core::ipc::send("toggle");
         Ok(())
     }
 
@@ -362,7 +362,7 @@ mod e2e {
         let (c, screen) = x11rb::connect(None).map_err(|e| e.to_string())?;
         let root = c.setup().roots[screen].root;
         let x = X { c, root };
-        let start = koon_core::store::now_ms();
+        let start = hook_core::store::now_ms();
         let mut fails = Vec::new();
         let mut check = |name: &str, ok: bool, detail: String| {
             println!("{} {name}{}", if ok { "✅" } else { "❌" }, if detail.is_empty() { String::new() } else { format!(" — {detail}") });
@@ -391,8 +391,8 @@ mod e2e {
         };
         let item = |d: (i16, i16), i: i16| (d.0 + 26, d.1 + 76 + 40 * i + if i >= 6 { 8 } else { 0 });
         let typed_ok = |x: &X, text: &str| -> Result<(), String> {
-            if !x.focused_koon() {
-                return Err("focus is not on koon; not typing".into());
+            if !x.focused_hook() {
+                return Err("focus is not on hook; not typing".into());
             }
             x.typing(text);
             Ok(())
@@ -416,7 +416,7 @@ mod e2e {
         let m = marks_since(start);
         check(
             "commenting saves a pin",
-            m.iter().any(|(_, m)| m.kind == koon_core::Kind::Pin && m.text == "comment one" && m.status == Status::Pending),
+            m.iter().any(|(_, m)| m.kind == hook_core::Kind::Pin && m.text == "comment one" && m.status == Status::Pending),
             format!("{} marks", m.len()),
         );
 
@@ -428,7 +428,7 @@ mod e2e {
         x.key(0xff0d);
         wait(900);
         let m = marks_since(start);
-        let stroke = m.iter().find(|(_, m)| m.kind == koon_core::Kind::Stroke);
+        let stroke = m.iter().find(|(_, m)| m.kind == hook_core::Kind::Stroke);
         check(
             "drawing saves a stroke",
             stroke.is_some_and(|(_, m)| m.text == "stroke" && m.points.len() > 5),
@@ -442,7 +442,7 @@ mod e2e {
         x.key(0xff0d);
         wait(900);
         let m = marks_since(start);
-        let area = m.iter().find(|(_, m)| m.kind == koon_core::Kind::Area);
+        let area = m.iter().find(|(_, m)| m.kind == hook_core::Kind::Area);
         check(
             "marking an area without text saves the area",
             area.is_some_and(|(_, m)| m.status == Status::Pending && m.bounds()[2] > 150.0),
@@ -480,7 +480,7 @@ mod e2e {
             check(
                 "replying adds a message to the pin thread",
                 m.iter()
-                    .any(|(_, m)| m.text == "comment one" && m.thread.last().is_some_and(|e| e.text == "edited" && e.author == koon_core::Author::User) && m.status == Status::Pending),
+                    .any(|(_, m)| m.text == "comment one" && m.thread.last().is_some_and(|e| e.text == "edited" && e.author == hook_core::Author::User) && m.status == Status::Pending),
                 m.iter()
                     .map(|(_, m)| format!("{} {:?}", m.text, m.thread.iter().map(|e| e.text.clone()).collect::<Vec<_>>()))
                     .collect::<Vec<_>>()
@@ -510,7 +510,7 @@ mod e2e {
                 }
             });
         }
-        let _ = koon_core::ipc::send("reload");
+        let _ = hook_core::ipc::send("reload");
         wait(1500);
         let wins = x.windows();
         let passive: Vec<_> = wins.iter().filter(|w| w.2.2 > 400).flat_map(|w| w.3.clone()).collect();
@@ -520,13 +520,13 @@ mod e2e {
             format!("{open_before} open before; input {passive:?}"),
         );
 
-        let _ = koon_core::ipc::send("toggle");
+        let _ = hook_core::ipc::send("toggle");
         wait(600);
         let opened = x.windows().iter().any(|w| w.3.iter().any(|r| r.2 == 52));
-        let _ = koon_core::ipc::send("toggle");
+        let _ = hook_core::ipc::send("toggle");
         wait(600);
         let closed = !x.windows().iter().any(|w| w.3.iter().any(|r| r.2 == 52));
-        check("koon toggle opens and closes", opened && closed, format!("opened {opened} closed {closed}"));
+        check("hook toggle opens and closes", opened && closed, format!("opened {opened} closed {closed}"));
 
         let dock = open_dock(&x)?;
         x.safe_click(dock.0 + 26, dock.1 + 30)?;
@@ -540,7 +540,7 @@ mod e2e {
         wait(400);
         typed_ok(&x, "half a thou")?;
         wait(300);
-        let typing = koon_core::ipc::is_typing();
+        let typing = hook_core::ipc::is_typing();
         x.key(0xff0d);
         wait(700);
         for (s, m) in marks_since(start).into_iter().filter(|(_, m)| m.text == "half a thou") {
@@ -550,13 +550,13 @@ mod e2e {
                 }
             });
         }
-        let _ = koon_core::ipc::send("reload");
+        let _ = hook_core::ipc::send("reload");
         check(
             "the agent sees the user typing",
-            typing && !koon_core::ipc::is_typing(),
-            format!("typing {typing} after {}", koon_core::ipc::is_typing()),
+            typing && !hook_core::ipc::is_typing(),
+            format!("typing {typing} after {}", hook_core::ipc::is_typing()),
         );
-        let _ = koon_core::ipc::send("toggle");
+        let _ = hook_core::ipc::send("toggle");
         wait(600);
 
         let dock = open_dock(&x)?;
@@ -575,7 +575,7 @@ mod e2e {
         let row: Vec<_> = marks_since(start).into_iter().filter(|(_, m)| m.text.ends_with("in a row")).collect();
         check("shift+enter saves and keeps commenting", row.len() == 2, format!("{} saved", row.len()));
 
-        if std::env::var_os("KOON_VOICE_FILE").is_some() {
+        if std::env::var_os("HOOK_VOICE_FILE").is_some() {
             let dock = open_dock(&x)?;
             x.safe_click(item(dock, 5).0, item(dock, 5).1)?;
             wait(200);
@@ -601,8 +601,8 @@ mod e2e {
                 }
             });
         }
-        let _ = koon_core::ipc::send("reload");
-        let _ = koon_core::ipc::send("toggle");
+        let _ = hook_core::ipc::send("reload");
+        let _ = hook_core::ipc::send("toggle");
         wait(600);
 
         let dock = open_dock(&x)?;
@@ -614,17 +614,17 @@ mod e2e {
         typed_ok(&x, "reopen me")?;
         x.key(0xff0d);
         wait(900);
-        let _ = koon_core::ipc::send("toggle");
+        let _ = hook_core::ipc::send("toggle");
         wait(600);
         if let Some((s, m)) = marks_since(start).into_iter().find(|(_, m)| m.text == "reopen me") {
             let _ = Store::open().update(&s.id, |s| {
                 if let Some(m) = s.mark_mut(m.id) {
                     m.status = Status::Resolved;
                     m.note = Some("listo".into());
-                    m.thread.push(koon_core::Entry::new(koon_core::Author::Agent, koon_core::Say::Done, "listo"));
+                    m.thread.push(hook_core::Entry::new(hook_core::Author::Agent, hook_core::Say::Done, "listo"));
                 }
             });
-            let _ = koon_core::ipc::send("reload");
+            let _ = hook_core::ipc::send("reload");
             wait(900);
             x.safe_click(pin.0 + 26 + 6 + 20, pin.1 - 13)?;
             wait(500);
@@ -634,14 +634,14 @@ mod e2e {
             let after = Store::open().load(&s.id).ok().and_then(|s| s.mark(m.id).cloned());
             let ok = after
                 .as_ref()
-                .is_some_and(|m| m.status == Status::Pending && m.last().is_some_and(|e| e.author == koon_core::Author::User && e.text == "no asi no"));
+                .is_some_and(|m| m.status == Status::Pending && m.last().is_some_and(|e| e.author == hook_core::Author::User && e.text == "no asi no"));
             check("clicking the agent's ✓ reopens the mark with a reply", ok, format!("{:?}", after.map(|m| (m.status, m.thread.len()))));
             let _ = Store::open().update(&s.id, |s| {
                 if let Some(m) = s.mark_mut(m.id) {
                     m.status = Status::Resolved;
                 }
             });
-            let _ = koon_core::ipc::send("reload");
+            let _ = hook_core::ipc::send("reload");
             wait(3500);
         } else {
             check("clicking the agent's ✓ reopens the mark with a reply", false, "no mark".into());
@@ -679,7 +679,7 @@ mod e2e {
             format!("{saved:?} leftover mark {leftover}"),
         );
 
-        let _ = koon_core::ipc::send("memories");
+        let _ = hook_core::ipc::send("memories");
         wait(700);
         typed_ok(&x, "suite mem")?;
         x.key(0xff0d);
@@ -697,8 +697,8 @@ mod e2e {
         for (s, _) in marks_since(start) {
             let _ = store.update(&s.id, |s| s.marks.iter_mut().for_each(|m| m.status = Status::Resolved));
         }
-        let _ = koon_core::ipc::send("reload");
-        let _ = koon_core::ipc::send("toggle");
+        let _ = hook_core::ipc::send("reload");
+        let _ = hook_core::ipc::send("toggle");
         wait(600);
 
         let empty = Store::open().list().into_iter().filter(|s| s.created >= start && s.marks.is_empty()).count();
@@ -814,7 +814,7 @@ mod e2e {
             ("the wallet", at(0.85, 0.12), "gold wallet"),
             ("the score", at(0.30, 0.66), "animated score"),
         ];
-        let start = koon_core::store::now_ms();
+        let start = hook_core::store::now_ms();
         let mut fails: Vec<String> = Vec::new();
         let mut note = |name: String, ok: bool, detail: String| {
             println!("{} {name}{}", if ok { "✅" } else { "❌" }, if detail.is_empty() { String::new() } else { format!(" — {detail}") });
@@ -848,10 +848,10 @@ mod e2e {
             wait(150);
             x.safe_click(p.0, p.1)?;
             wait(250);
-            if !x.focused_koon() {
+            if !x.focused_hook() {
                 let f = x.c.get_input_focus().ok().and_then(|r| r.reply().ok()).map(|r| r.focus);
                 x.escape();
-                return Err(format!("focus left koon after marking ({f:?})"));
+                return Err(format!("focus left hook after marking ({f:?})"));
             }
             x.typing(text);
             let t = std::time::Instant::now();
@@ -998,7 +998,7 @@ mod e2e {
         for s in &open_now {
             let _ = Store::open().update(&s.id, |s| s.marks.iter_mut().for_each(|m| m.status = Status::Resolved));
         }
-        let _ = koon_core::ipc::send("reload");
+        let _ = hook_core::ipc::send("reload");
         wait(1500);
         let left: usize = x.windows().iter().filter(|w| w.2.2 > 400).map(|w| w.3.len()).sum();
         note("resolving everything clears the screen".into(), left == 0, format!("{left} input zones left"));
@@ -1073,8 +1073,8 @@ mod e2e {
             wait(150);
             x.safe_click(pt.0, pt.1)?;
             wait(300);
-            if !x.focused_koon() {
-                return Err("focus left koon".into());
+            if !x.focused_hook() {
+                return Err("focus left hook".into());
             }
             x.typing(text);
             x.key(0xff0d);
@@ -1161,15 +1161,15 @@ mod e2e {
             let target = (o.1.0 + 300 + 40 * k as i16, o.1.1 + 260);
             x.safe_click(target.0, target.1)?;
             wait(450);
-            if !x.focused_koon() {
-                let _ = koon_core::ipc::send("toggle");
-                return Err(format!("keyboard focus is not on koon after marking on monitor {k}; not typing anything"));
+            if !x.focused_hook() {
+                let _ = hook_core::ipc::send("toggle");
+                return Err(format!("keyboard focus is not on hook after marking on monitor {k}; not typing anything"));
             }
             x.typing(&format!("test {k}"));
             x.key(0xff0d);
             wait(900);
         }
-        let _ = koon_core::ipc::send("toggle");
+        let _ = hook_core::ipc::send("toggle");
         wait(600);
         let store = Store::open();
         let all = store.list();
@@ -1260,7 +1260,7 @@ pub fn detect_probe(out: &str) {
             let (x, y) = ((420 + 40 + 60 + 75 - at.0).max(0) as u32, (300 + 40 + 110 + 22 - at.1).max(0) as u32);
             if x < img.w && y < img.h {
                 let t = std::time::Instant::now();
-                println!("boxes {:?} in {:?}", koon_core::detect::boxes(&img, (x, y)), t.elapsed());
+                println!("boxes {:?} in {:?}", hook_core::detect::boxes(&img, (x, y)), t.elapsed());
                 std::fs::write(out, img.encode_png().map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
             }
         }

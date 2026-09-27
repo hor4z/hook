@@ -16,16 +16,16 @@ jobs:
         include:
           - os: ubuntu-24.04
             target: x86_64-unknown-linux-gnu
-            asset: koon-linux-x86_64
+            asset: hook-linux-x86_64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            asset: koon-windows-x86_64
+            asset: hook-windows-x86_64
           - os: macos-14
             target: aarch64-apple-darwin
-            asset: koon-macos-arm64
+            asset: hook-macos-arm64
           - os: macos-14
             target: x86_64-apple-darwin
-            asset: koon-macos-x86_64
+            asset: hook-macos-x86_64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -45,12 +45,12 @@ jobs:
           key: release-${{ matrix.target }}-${{ hashFiles('Cargo.lock') }}
           restore-keys: release-${{ matrix.target }}-
       - name: Build
-        run: cargo build --release --locked --target ${{ matrix.target }} -p koon-app -p koon-mcp
+        run: cargo build --release --locked --target ${{ matrix.target }} -p hook-app -p hook-mcp
       - name: Package (Linux and macOS)
         if: runner.os != 'Windows'
         run: |
           mkdir dist
-          cp target/${{ matrix.target }}/release/koon target/${{ matrix.target }}/release/koon-mcp dist/
+          cp target/${{ matrix.target }}/release/hook target/${{ matrix.target }}/release/hook-mcp dist/
           cp README.md CHANGELOG.md dist/
           tar -czf ${{ matrix.asset }}.tar.gz -C dist .
       - name: Package (Windows)
@@ -58,7 +58,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory dist | Out-Null
-          Copy-Item target/${{ matrix.target }}/release/koon.exe, target/${{ matrix.target }}/release/koon-mcp.exe, README.md, CHANGELOG.md dist/
+          Copy-Item target/${{ matrix.target }}/release/hook.exe, target/${{ matrix.target }}/release/hook-mcp.exe, README.md, CHANGELOG.md dist/
           Compress-Archive -Path dist/* -DestinationPath ${{ matrix.asset }}.zip
       - uses: actions/upload-artifact@v4
         with:
@@ -82,4 +82,4 @@ jobs:
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --title "koon $GITHUB_REF_NAME" --notes-file notes.md
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "hook $GITHUB_REF_NAME" --notes-file notes.md

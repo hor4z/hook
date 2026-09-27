@@ -1,2 +1,2 @@
 [alias]
-koon = "run -q -p koon-app --release --"
+hook = "run -q -p hook-app --release --"

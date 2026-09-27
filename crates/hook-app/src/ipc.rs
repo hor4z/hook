@@ -1,4 +1,4 @@
-use koon_core::ipc;
+use hook_core::ipc;
 use std::io::{self, BufRead, BufReader, Write};
 
 pub fn serve(on: impl Fn(&str) -> bool + Send + 'static) -> io::Result<()> {

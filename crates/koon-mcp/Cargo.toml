@@ -1,9 +1,0 @@
-[package]
-name = "koon-mcp"
-description = "stdio MCP server that hands koon feedback to coding agents"
-version.workspace = true
-edition.workspace = true
-
-[dependencies]
-koon-core.workspace = true
-serde_json.workspace = true

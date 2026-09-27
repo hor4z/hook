@@ -7,8 +7,8 @@ version = "0.2.0"
 edition = "2024"
 
 [workspace.dependencies]
-koon-core = { path = "crates/koon-core" }
-koon-ui = { path = "crates/koon-ui" }
+hook-core = { path = "crates/hook-core" }
+hook-ui = { path = "crates/hook-ui" }
 png = "0.18.1"
 pollster = "0.4.0"
 serde = { version = "1", features = ["derive"] }
@@ -23,7 +23,7 @@ codegen-units = 1
 strip = true
 panic = "abort"
 
-[profile.release.package.koon-ui]
+[profile.release.package.hook-ui]
 opt-level = 3
 
 [profile.dev.package."*"]

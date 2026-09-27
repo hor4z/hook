@@ -15,8 +15,8 @@ mod voice;
 
 use board::{Board, Out, Shown};
 use gfx::{Gpu, View, mods, ui_key};
-use koon_core::{Author, Image, Kind, Mark, Session, Status, Store};
-use koon_ui::Css;
+use hook_core::{Author, Image, Kind, Mark, Session, Status, Store};
+use hook_ui::Css;
 use look::{Act, DockLook, PillLook};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -32,7 +32,7 @@ use winit::window::{Window, WindowAttributes, WindowId, WindowLevel};
 #[cfg(test)]
 mod tests {
     use super::*;
-    use koon_core::{Kind, Mark};
+    use hook_core::{Kind, Mark};
 
     fn session(status: Status) -> Session {
         let mut m = Mark::new(1, Kind::Pin, [0.0, 0.0]);
@@ -64,18 +64,18 @@ mod tests {
         merge(&session(Status::Pending), &mut mine);
         assert_eq!(mine.marks[0].status, Status::Resolved);
         let mut asked = session(Status::Taken);
-        asked.marks[0].thread.push(koon_core::Entry {
+        asked.marks[0].thread.push(hook_core::Entry {
             author: Author::Agent,
-            say: koon_core::Say::Question,
+            say: hook_core::Say::Question,
             text: "green or gold?".into(),
             at: 10,
         });
         let mut mine = session(Status::Taken);
         merge(&asked, &mut mine);
         assert_eq!(mine.marks[0].asking(), Some("green or gold?"));
-        mine.marks[0].thread.push(koon_core::Entry {
+        mine.marks[0].thread.push(hook_core::Entry {
             author: Author::User,
-            say: koon_core::Say::Reply,
+            say: hook_core::Say::Reply,
             text: "gold".into(),
             at: 20,
         });
@@ -147,7 +147,7 @@ struct App {
 
 fn attrs(name: &str, dock: bool) -> WindowAttributes {
     let a = Window::default_attributes()
-        .with_title("koon")
+        .with_title("hook")
         .with_decorations(false)
         .with_transparent(true)
         .with_window_level(WindowLevel::AlwaysOnTop);
@@ -270,7 +270,7 @@ impl App {
         let y0 = monitors.iter().map(|m| m.rect.1).min().unwrap_or(0);
         let x1 = monitors.iter().map(|m| m.rect.0 + m.rect.2 as i32).max().unwrap_or(800);
         let y1 = monitors.iter().map(|m| m.rect.1 + m.rect.3 as i32).max().unwrap_or(600);
-        let a = attrs("koon-overlay", true)
+        let a = attrs("hook-overlay", true)
             .with_inner_size(winit::dpi::PhysicalSize::new((x1 - x0) as u32, (y1 - y0) as u32))
             .with_position(winit::dpi::PhysicalPosition::new(x0, y0))
             .with_resizable(false);
@@ -279,12 +279,12 @@ impl App {
         let scale = window.scale_factor() as f32;
         board.areas = monitors
             .iter()
-            .map(|m| koon_ui::R::new((m.rect.0 - x0) as f32 / scale, (m.rect.1 - y0) as f32 / scale, m.rect.2 as f32 / scale, m.rect.3 as f32 / scale))
+            .map(|m| hook_ui::R::new((m.rect.0 - x0) as f32 / scale, (m.rect.1 - y0) as f32 / scale, m.rect.2 as f32 / scale, m.rect.3 as f32 / scale))
             .collect();
         let desktop = [(x1 - x0) as f32 / scale, (y1 - y0) as f32 / scale];
         for session in self.store.list().into_iter().filter(|s| !s.monitors.is_empty() && s.open().next().is_some()) {
             if session.size != desktop {
-                eprintln!("koon: session {} belongs to a different monitor layout; showing it anyway", session.id);
+                eprintln!("hook: session {} belongs to a different monitor layout; showing it anyway", session.id);
             }
             if let Some(m) = self.store.modified(&session.id) {
                 self.modified.insert(session.id.clone(), m);
@@ -327,7 +327,7 @@ impl App {
     fn show_dock(&mut self) {
         self.hidden = false;
         self.open = true;
-        koon_core::ipc::set_state(true, self.typing);
+        hook_core::ipc::set_state(true, self.typing);
         self.closing = None;
         for s in &mut self.screens {
             if s.board.draft.is_none() {
@@ -339,7 +339,7 @@ impl App {
                         d.monitors = s.monitors.iter().zip(&s.board.areas).map(|(m, r)| (m.name.clone().unwrap_or_default(), [r.x, r.y, r.w, r.h])).collect();
                         s.board.draft = Some(d);
                     }
-                    Err(e) => eprintln!("koon: cannot create session: {e}"),
+                    Err(e) => eprintln!("hook: cannot create session: {e}"),
                 }
             }
         }
@@ -356,7 +356,7 @@ impl App {
         }
         self.open = false;
         self.typing = false;
-        koon_core::ipc::set_state(false, false);
+        hook_core::ipc::set_state(false, false);
         self.armed = None;
         self.closing = Some(Instant::now());
         let proxy = self.proxy.clone();
@@ -462,16 +462,16 @@ impl App {
             let boxes = capture::desktop(&mons, origin, size)
                 .map(|img| {
                     let img = img.resize(size.0, size.1);
-                    koon_core::detect::boxes(&img, ((at[0] * scale) as u32, (at[1] * scale) as u32))
+                    hook_core::detect::boxes(&img, ((at[0] * scale) as u32, (at[1] * scale) as u32))
                         .into_iter()
                         .map(|b| [b[0] as f32 / scale, b[1] as f32 / scale, b[2] as f32 / scale, b[3] as f32 / scale])
                         .collect()
                 })
                 .unwrap_or_else(|e| {
-                    eprintln!("koon: capture: {e}");
+                    eprintln!("hook: capture: {e}");
                     Vec::new()
                 });
-            if std::env::var_os("KOON_DEBUG").is_some() {
+            if std::env::var_os("HOOK_DEBUG").is_some() {
                 eprintln!("detect at {at:?} scale {scale} size {size:?}: {boxes:?}");
             }
             let _ = proxy.send_event(Ev::Detected(i, boxes, memory));
@@ -482,7 +482,7 @@ impl App {
         let Some(s) = self.screens.get_mut(i) else { return };
         let area = s.board.areas.first().copied().unwrap_or_else(|| {
             let (w, h) = s.view.logical();
-            koon_ui::R::new(0.0, 0.0, w, h)
+            hook_ui::R::new(0.0, 0.0, w, h)
         });
         let Some(d) = s.board.draft.as_mut() else { return };
         let mid = d.next_id();
@@ -521,7 +521,7 @@ impl App {
         let proxy = self.proxy.clone();
         std::thread::spawn(move || {
             std::thread::sleep(Duration::from_millis(260));
-            let img = capture::desktop(&mons, origin, size).map_err(|e| eprintln!("koon: capture: {e}")).ok();
+            let img = capture::desktop(&mons, origin, size).map_err(|e| eprintln!("hook: capture: {e}")).ok();
             let _ = proxy.send_event(Ev::Snapped(i, sid, img));
         });
     }
@@ -537,7 +537,7 @@ impl App {
             Ok(()) => {
                 let _ = proxy.send_event(Ev::Saved(session.id.clone()));
             }
-            Err(e) => eprintln!("koon: could not save {}: {e}", session.id),
+            Err(e) => eprintln!("hook: could not save {}: {e}", session.id),
         });
     }
 
@@ -604,7 +604,7 @@ impl App {
             }
         }
         if let Err(e) = &r {
-            eprintln!("koon: voice: {e}");
+            eprintln!("hook: voice: {e}");
         }
         self.redraw_all();
     }
@@ -640,8 +640,8 @@ impl App {
         }
     }
 
-    fn dock_at(&self, i: usize) -> ((f32, f32), bool, koon_ui::R) {
-        let Some(s) = self.screens.get(i) else { return ((0.0, 0.0), false, koon_ui::R::default()) };
+    fn dock_at(&self, i: usize) -> ((f32, f32), bool, hook_ui::R) {
+        let Some(s) = self.screens.get(i) else { return ((0.0, 0.0), false, hook_ui::R::default()) };
         let o = &s.view;
         let sc = o.scale() as f64;
         let placed = match (self.pill.as_ref().map(|p| p.window.outer_position()), o.window.outer_position()) {
@@ -653,7 +653,7 @@ impl App {
             .or(s.board.areas.first().copied())
             .unwrap_or_else(|| {
                 let (w, h) = o.logical();
-                koon_ui::R::new(0.0, 0.0, w, h)
+                hook_ui::R::new(0.0, 0.0, w, h)
             });
         let (x, y) = placed.unwrap_or((area.right() - look::DOCK_W - 24.0, area.y + (area.h - look::PILL.1) / 2.0));
         let up = y + look::dock_height(false) > area.bottom() - 12.0 && y + look::PILL.1 - look::dock_height(true) >= area.y + 12.0;
@@ -665,7 +665,7 @@ impl App {
             let mut prefs = self.store.prefs();
             prefs.pill = Some((at.x, at.y));
             if let Err(e) = self.store.save_prefs(&prefs) {
-                eprintln!("koon: could not save preferences: {e}");
+                eprintln!("hook: could not save preferences: {e}");
             }
         }
     }
@@ -725,7 +725,7 @@ impl App {
         #[cfg(not(target_os = "linux"))]
         let state: Option<((i32, i32), bool)> = None;
         let Some((g, down)) = state else { return };
-        if std::env::var_os("KOON_DEBUG").is_some() {
+        if std::env::var_os("HOOK_DEBUG").is_some() {
             eprintln!("drag g0={g0:?} w0={w0:?} g={g:?} down={down}");
         }
         if let Some(p) = &self.pill {
@@ -814,7 +814,7 @@ impl App {
             s.view.state.regions().iter().map(|(r, _)| (r.x, r.y, r.w, r.h)).collect()
         };
         if !was_editing && s.board.editing() {
-            if std::env::var_os("KOON_DEBUG").is_some() {
+            if std::env::var_os("HOOK_DEBUG").is_some() {
                 eprintln!("bubble opened on overlay {i}, focusing");
             }
             s.view.window.focus_window();
@@ -823,7 +823,7 @@ impl App {
         let typing = self.screens.iter().any(|s| s.board.editing());
         if typing != self.typing {
             self.typing = typing;
-            koon_core::ipc::set_state(self.open, typing);
+            hook_core::ipc::set_state(self.open, typing);
         }
         self.shape(i, rects);
         if now_armed != armed {
@@ -890,7 +890,7 @@ impl ApplicationHandler<Ev> for App {
             return;
         }
         let size = LogicalSize::new((look::PILL.0 + look::MARGIN * 2.0) as f64, (look::PILL.1 + look::MARGIN * 2.0) as f64);
-        let mut a = attrs("koon", true).with_inner_size(size).with_resizable(false);
+        let mut a = attrs("hook", true).with_inner_size(size).with_resizable(false);
         let saved = self.store.prefs().pill.filter(|&(x, y)| {
             el.available_monitors().any(|m| {
                 let (p, z) = (m.position(), m.size());
@@ -939,7 +939,7 @@ impl ApplicationHandler<Ev> for App {
                 return;
             }
             WindowEvent::Focused(f)
-                if std::env::var_os("KOON_DEBUG").is_some() && {
+                if std::env::var_os("HOOK_DEBUG").is_some() && {
                     eprintln!("focus {f} overlay {overlay:?} pill {is_pill}");
                     false
                 } => {}
@@ -1043,7 +1043,7 @@ impl ApplicationHandler<Ev> for App {
                 }
             }
             WindowEvent::KeyboardInput { event, .. } if event.state == ElementState::Pressed => {
-                if std::env::var_os("KOON_DEBUG").is_some() {
+                if std::env::var_os("HOOK_DEBUG").is_some() {
                     eprintln!("key {:?} -> overlay {:?}", event.logical_key, overlay);
                 }
                 if v.mods.control_key() && matches!(&event.logical_key, WKey::Character(c) if c.eq_ignore_ascii_case("q")) {
@@ -1082,13 +1082,13 @@ fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if let Some(cmd) = args.first().map(String::as_str) {
         match cmd {
-            "toggle" | "memories" | "show" | "hide" | "quit" => match koon_core::ipc::send(cmd) {
+            "toggle" | "memories" | "show" | "hide" | "quit" => match hook_core::ipc::send(cmd) {
                 Ok(r) => {
                     println!("{r}");
                     return;
                 }
                 Err(e) => {
-                    eprintln!("koon is not running ({e})");
+                    eprintln!("hook is not running ({e})");
                     std::process::exit(1);
                 }
             },
@@ -1136,7 +1136,7 @@ fn main() {
             }
             "--record" => {
                 let secs = args.get(1).and_then(|v| v.parse().ok()).unwrap_or(8);
-                if let Err(e) = voice::record_file(secs, args.get(2).map(String::as_str).unwrap_or("koon-voice.wav")) {
+                if let Err(e) = voice::record_file(secs, args.get(2).map(String::as_str).unwrap_or("hook-voice.wav")) {
                     eprintln!("{e}");
                     std::process::exit(1);
                 }
@@ -1150,7 +1150,7 @@ fn main() {
                 return;
             }
             "--morph" => {
-                let path = args.get(1).map(String::as_str).unwrap_or("koon-morph.png");
+                let path = args.get(1).map(String::as_str).unwrap_or("hook-morph.png");
                 if let Err(e) = preview::morph(path) {
                     eprintln!("{e}");
                     std::process::exit(1);
@@ -1172,7 +1172,7 @@ fn main() {
                 return;
             }
             "--preview" => {
-                let path = args.get(1).map(String::as_str).unwrap_or("koon-preview.png");
+                let path = args.get(1).map(String::as_str).unwrap_or("hook-preview.png");
                 if let Err(e) = preview::render(path) {
                     eprintln!("{e}");
                     std::process::exit(1);
@@ -1182,7 +1182,7 @@ fn main() {
             }
             "--help" | "-h" | "help" => {
                 println!(
-                    "koon            open the widget\nkoon toggle     open or close the options ({})\nkoon show|hide  show or hide the widget\nkoon quit       quit koon",
+                    "hook            open the widget\nhook toggle     open or close the options ({})\nhook show|hide  show or hide the widget\nhook quit       quit hook",
                     system::SHORTCUT
                 );
                 return;
@@ -1193,15 +1193,15 @@ fn main() {
             }
         }
     }
-    if koon_core::ipc::send("show").is_ok() {
-        println!("koon was already open");
+    if hook_core::ipc::send("show").is_ok() {
+        println!("hook was already open");
         return;
     }
     system::identity(&args);
     #[cfg(target_os = "linux")]
     let el = {
         let mut b = EventLoop::<Ev>::with_user_event();
-        if std::env::var_os("KOON_WAYLAND").is_none() && std::env::var_os("DISPLAY").is_some() {
+        if std::env::var_os("HOOK_WAYLAND").is_none() && std::env::var_os("DISPLAY").is_some() {
             use winit::platform::x11::EventLoopBuilderExtX11;
             b.with_x11();
         }
@@ -1223,7 +1223,7 @@ fn main() {
         };
         p.send_event(ev).is_ok()
     }) {
-        eprintln!("koon: control socket unavailable: {e}");
+        eprintln!("hook: control socket unavailable: {e}");
     }
     let p = proxy.clone();
     std::thread::spawn(move || {
@@ -1242,9 +1242,9 @@ fn main() {
         },
     );
     match system::gnome_shortcut() {
-        Ok(true) => eprintln!("koon: shortcuts {} and {} registered in GNOME", system::SHORTCUT, system::MEMORIES),
+        Ok(true) => eprintln!("hook: shortcuts {} and {} registered in GNOME", system::SHORTCUT, system::MEMORIES),
         Ok(false) => {}
-        Err(e) => eprintln!("koon: could not register the GNOME shortcut: {e}"),
+        Err(e) => eprintln!("hook: could not register the GNOME shortcut: {e}"),
     }
     let mut app = App {
         proxy,
@@ -1270,5 +1270,5 @@ fn main() {
         css: Css::dark(),
         _hotkey: hotkey,
     };
-    el.run_app(&mut app).expect("koon");
+    el.run_app(&mut app).expect("hook");
 }

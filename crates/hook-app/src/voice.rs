@@ -9,7 +9,7 @@ use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperContextPar
 const MODELS: [(&str, &str); 2] = [("small", "ggml-small-q5_1.bin"), ("turbo", "ggml-large-v3-turbo-q5_0.bin")];
 const MODEL_URL: &str = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/";
 const RATE: usize = 16_000;
-const PROMPT_ES: &str = "Comentario para Claude sobre la interfaz de koon: el botón, el header, el dock, el texto y los colores. Lo subo a GitHub.";
+const PROMPT_ES: &str = "Comentario para Claude sobre la interfaz de hook: el botón, el header, el dock, el texto y los colores. Lo subo a GitHub.";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Phase {
@@ -44,17 +44,17 @@ struct Settings {
 }
 
 fn settings(root: &std::path::Path) -> Settings {
-    let prefs = koon_core::Store::at(root).prefs();
+    let prefs = hook_core::Store::at(root).prefs();
     let env = |k: &str| std::env::var(k).ok();
-    let lang = env("KOON_VOICE_LANG").or(prefs.voice_lang).unwrap_or_else(|| "es".into());
+    let lang = env("HOOK_VOICE_LANG").or(prefs.voice_lang).unwrap_or_else(|| "es".into());
     let base = if lang == "es" { PROMPT_ES } else { "" };
-    let prompt = env("KOON_VOICE_PROMPT").unwrap_or_else(|| format!("{base} {}", prefs.voice_context.unwrap_or_default()).trim().to_string());
-    let name = env("KOON_WHISPER_MODEL").or(prefs.voice_model).unwrap_or_else(|| "small".into());
+    let prompt = env("HOOK_VOICE_PROMPT").unwrap_or_else(|| format!("{base} {}", prefs.voice_context.unwrap_or_default()).trim().to_string());
+    let name = env("HOOK_WHISPER_MODEL").or(prefs.voice_model).unwrap_or_else(|| "small".into());
     let model = match MODELS.iter().find(|(k, _)| *k == name) {
         Some((_, file)) => root.join("models").join(file),
         None => PathBuf::from(name),
     };
-    let server = env("KOON_VOICE_SERVER").or(prefs.voice_server).filter(|u| !u.is_empty());
+    let server = env("HOOK_VOICE_SERVER").or(prefs.voice_server).filter(|u| !u.is_empty());
     Settings { lang, prompt, model, server }
 }
 
@@ -143,7 +143,7 @@ fn decode(path: &std::ffi::OsStr) -> Result<Vec<f32>, String> {
 }
 
 fn record(s: &Arc<Shared>) -> Result<(), String> {
-    if let Some(file) = std::env::var_os("KOON_VOICE_FILE") {
+    if let Some(file) = std::env::var_os("HOOK_VOICE_FILE") {
         let pcm = decode(&file)?;
         s.rate.store(RATE as u32, Ordering::Relaxed);
         s.peak.store(pcm.iter().fold(0f32, |a, x| a.max(x.abs())).to_bits(), Ordering::Relaxed);
@@ -159,7 +159,7 @@ fn record(s: &Arc<Shared>) -> Result<(), String> {
     let config = device.default_input_config().map_err(|e| e.to_string())?;
     let channels = config.channels() as usize;
     s.rate.store(config.sample_rate(), Ordering::Relaxed);
-    let err = |e: cpal::Error| eprintln!("koon: microphone: {e}");
+    let err = |e: cpal::Error| eprintln!("hook: microphone: {e}");
     let stream = match config.sample_format() {
         SampleFormat::F32 => device.build_input_stream(config.into(), feed::<f32>(s.clone(), channels), err, None),
         SampleFormat::I16 => device.build_input_stream(config.into(), feed::<i16>(s.clone(), channels), err, None),
@@ -221,7 +221,7 @@ fn download(path: &std::path::Path) -> Result<(), String> {
         std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     }
     let part = path.with_extension("part");
-    eprintln!("koon: downloading the voice model to {}", path.display());
+    eprintln!("hook: downloading the voice model to {}", path.display());
     let ok = std::process::Command::new("curl")
         .args(["-fsSL", "--retry", "3", "-o"])
         .arg(&part)
@@ -274,7 +274,7 @@ fn transcribe(pcm: &[f32], root: &std::path::Path) -> Result<String, String> {
     }
     let threads = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4).min(8);
     p.set_n_threads(threads as i32);
-    if std::env::var("KOON_VOICE_AUDIO_CTX").is_ok_and(|v| v == "full") {
+    if std::env::var("HOOK_VOICE_AUDIO_CTX").is_ok_and(|v| v == "full") {
         p.set_audio_ctx(0);
     } else {
         let secs = pcm.len() as f32 / RATE as f32 + 1.0;
@@ -300,7 +300,7 @@ fn transcribe(pcm: &[f32], root: &std::path::Path) -> Result<String, String> {
 }
 
 fn remote(url: &str, pcm: &[f32], set: &Settings) -> Result<String, String> {
-    let file = std::env::temp_dir().join(format!("koon-voice-{}.wav", std::process::id()));
+    let file = std::env::temp_dir().join(format!("hook-voice-{}.wav", std::process::id()));
     std::fs::write(&file, wav(pcm)).map_err(|e| e.to_string())?;
     let mut cmd = std::process::Command::new("curl");
     cmd.args(["-fsS", "--max-time", "60", "-F"])
@@ -310,7 +310,7 @@ fn remote(url: &str, pcm: &[f32], set: &Settings) -> Result<String, String> {
     if !set.prompt.is_empty() {
         cmd.arg("-F").arg(format!("prompt={}", set.prompt));
     }
-    if let Ok(token) = std::env::var("KOON_VOICE_TOKEN") {
+    if let Ok(token) = std::env::var("HOOK_VOICE_TOKEN") {
         cmd.arg("-H").arg(format!("Authorization: Bearer {token}"));
     }
     let out = cmd.arg(url).output().map_err(|e| format!("cannot run curl: {e}"));
@@ -395,7 +395,7 @@ pub fn record_file(secs: u64, path: &str) -> Result<(), String> {
 }
 
 pub fn transcribe_file(path: &str) -> Result<(), String> {
-    let root = koon_core::Store::open().root().to_path_buf();
+    let root = hook_core::Store::open().root().to_path_buf();
     let pcm = decode(path.as_ref())?;
     let started = std::time::Instant::now();
     if settings(&root).server.is_none() {
@@ -412,7 +412,7 @@ pub fn transcribe_file(path: &str) -> Result<(), String> {
 }
 
 pub fn listen(secs: u64) -> Result<(), String> {
-    let root = koon_core::Store::open().root().to_path_buf();
+    let root = hook_core::Store::open().root().to_path_buf();
     let (tx, rx) = std::sync::mpsc::channel();
     let take = Take::start(root, move |_, r| {
         let _ = tx.send(r);

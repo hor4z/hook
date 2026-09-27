@@ -1,5 +1,5 @@
-use koon_core::{Kind, Mark, Status};
-use koon_ui::{Ease, Face, R, Rgba, Ui, alpha, hex, id};
+use hook_core::{Kind, Mark, Status};
+use hook_ui::{Ease, Face, R, Rgba, Ui, alpha, hex, id};
 use std::f32::consts::TAU;
 
 pub const LOGO: &str = include_str!("../../../assets/logo.svg");
@@ -79,7 +79,7 @@ pub fn pill(ui: &mut Ui, v: &PillLook) -> R {
     }
     ui.region(r, key);
     if ui.hovered(key) {
-        ui.cursor(koon_ui::Cursor::Pointer);
+        ui.cursor(hook_ui::Cursor::Pointer);
     }
     r
 }
@@ -205,7 +205,7 @@ pub fn dock(ui: &mut Ui, v: &DockLook) -> Option<Act> {
     let head = R::new(x, y, DOCK_W, 56.0);
     ui.region(head, logo);
     if ui.hovered(logo) {
-        ui.cursor(koon_ui::Cursor::Pointer);
+        ui.cursor(hook_ui::Cursor::Pointer);
     }
     if ui.pressed_on(logo) {
         out = Some(Act::Grab);
@@ -246,14 +246,14 @@ pub fn dock(ui: &mut Ui, v: &DockLook) -> Option<Act> {
         } else if on {
             accent()
         } else {
-            koon_ui::mix(muted(), ink(), hover)
+            hook_ui::mix(muted(), ink(), hover)
         };
         ui.icon(icon, cell.x + 9.0, cell.y + 9.0, 18.0, c);
         ui.pop_offset();
         ui.pop_alpha();
         ui.region(cell, key);
         if hot {
-            ui.cursor(koon_ui::Cursor::Pointer);
+            ui.cursor(hook_ui::Cursor::Pointer);
             tips = Some((key, cell, *label, *kbd));
         }
         if !disabled && ui.clicked(key) {
@@ -391,7 +391,7 @@ pub fn thread(ui: &mut Ui, key: u64, anchor: R, bounds: R, m: &Mark, text: &mut 
     let w = 340.0;
     let inner = w - 28.0;
     let mut msgs: Vec<(bool, Vec<String>)> = std::iter::once((true, m.text.clone()))
-        .chain(m.thread.iter().map(|e| (e.author == koon_core::Author::User, e.text.clone())))
+        .chain(m.thread.iter().map(|e| (e.author == hook_core::Author::User, e.text.clone())))
         .filter(|(_, t)| !t.trim().is_empty())
         .map(|(u, t)| (u, wrap(ui, &t, Face::Sans400, 13.0, inner - 12.0, 4)))
         .collect();
@@ -428,7 +428,7 @@ pub fn thread(ui: &mut Ui, key: u64, anchor: R, bounds: R, m: &Mark, text: &mut 
     let field = R::new(r.x + 14.0, cy + 8.0, r.w - 28.0, 34.0);
     ui.s.focus = Some(field_key);
     let placeholder = if m.asking().is_some() { "Respondé al agente…" } else { "Responder…" };
-    let res = koon_ui::widgets::text_field(ui, field_key, field, text, placeholder, Face::Sans400, 14.0, ink());
+    let res = hook_ui::widgets::text_field(ui, field_key, field, text, placeholder, Face::Sans400, 14.0, ink());
     let hint = ui.baseline(Face::Sans400, 11.0, r.bottom() - 22.0);
     let end = ui.text(r.x + 14.0, hint, "↵", Face::Mono500, 11.0, ink());
     let end = ui.text(end + 5.0, hint, "enviar", Face::Sans400, 11.0, muted());
@@ -439,7 +439,7 @@ pub fn thread(ui: &mut Ui, key: u64, anchor: R, bounds: R, m: &Mark, text: &mut 
     let hover = ui.hovered(del);
     if hover {
         ui.rect(cell, 8.0, [1.0, 1.0, 1.0, 0.08]);
-        ui.cursor(koon_ui::Cursor::Pointer);
+        ui.cursor(hook_ui::Cursor::Pointer);
     }
     ui.icon("trash-2", cell.x + 5.0, cell.y + 5.0, 16.0, if hover { hex("#FF7A6B", 1.0) } else { muted() });
     ui.pop_alpha();
@@ -450,7 +450,7 @@ pub fn thread(ui: &mut Ui, key: u64, anchor: R, bounds: R, m: &Mark, text: &mut 
     if res.submitted.is_some() {
         return Some(BubbleOut::Save);
     }
-    if ui.key(koon_ui::Key::Escape).is_some() {
+    if ui.key(hook_ui::Key::Escape).is_some() {
         return Some(BubbleOut::Cancel);
     }
     None
@@ -558,7 +558,7 @@ pub fn bubble(ui: &mut Ui, key: u64, anchor: R, bounds: R, text: &mut String, pl
     let field_key = field_key(key);
     let field = R::new(r.x + 14.0, r.y + 10.0, r.w - 28.0, 34.0);
     ui.s.focus = Some(field_key);
-    let res = koon_ui::widgets::text_field(ui, field_key, field, text, placeholder, Face::Sans400, 14.0, ink());
+    let res = hook_ui::widgets::text_field(ui, field_key, field, text, placeholder, Face::Sans400, 14.0, ink());
     ui.rect(R::new(r.x + 14.0, r.y + 46.0, r.w - 28.0, 1.0), 0.0, edge());
     let hint = ui.baseline(Face::Sans400, 11.0, r.y + 65.0);
     match mic {
@@ -586,12 +586,12 @@ pub fn bubble(ui: &mut Ui, key: u64, anchor: R, bounds: R, text: &mut String, pl
     let mic_hover = ui.hovered(mic_key);
     let live = matches!(mic, Mic::Listening(_));
     if live {
-        ui.rect(mic_cell, 8.0, koon_ui::alpha(tint, 0.16));
+        ui.rect(mic_cell, 8.0, hook_ui::alpha(tint, 0.16));
     } else if mic_hover {
         ui.rect(mic_cell, 8.0, [1.0, 1.0, 1.0, 0.08]);
     }
     if mic_hover {
-        ui.cursor(koon_ui::Cursor::Pointer);
+        ui.cursor(hook_ui::Cursor::Pointer);
     }
     let mic_color = if mic != Mic::Off {
         tint
@@ -606,7 +606,7 @@ pub fn bubble(ui: &mut Ui, key: u64, anchor: R, bounds: R, text: &mut String, pl
     let hover = ui.hovered(del);
     if hover {
         ui.rect(cell, 8.0, [1.0, 1.0, 1.0, 0.08]);
-        ui.cursor(koon_ui::Cursor::Pointer);
+        ui.cursor(hook_ui::Cursor::Pointer);
     }
     ui.icon("trash-2", cell.x + 5.0, cell.y + 5.0, 16.0, if hover { hex("#FF7A6B", 1.0) } else { muted() });
     ui.pop_alpha();
@@ -621,7 +621,7 @@ pub fn bubble(ui: &mut Ui, key: u64, anchor: R, bounds: R, text: &mut String, pl
     if let Some(m) = res.submitted {
         return Some(if m.shift || m.ctrl { BubbleOut::SaveNext } else { BubbleOut::Save });
     }
-    if ui.key(koon_ui::Key::Escape).is_some() {
+    if ui.key(hook_ui::Key::Escape).is_some() {
         return Some(BubbleOut::Cancel);
     }
     None
@@ -632,7 +632,7 @@ pub struct Card {
     pub name: String,
     pub note: String,
     pub path: String,
-    pub thumb: Option<koon_core::Image>,
+    pub thumb: Option<hook_core::Image>,
     pub full: Option<std::path::PathBuf>,
 }
 
@@ -742,7 +742,7 @@ const FOLDER_BACK: &str = "M12 0h34c8 0 10 1.5 14 5c4 3.5 8 4 16 4h42a12 12 0 0 
 
 fn folder(ui: &mut Ui, p: &Palette, f: &Folder, r: R, hover: f32, k: usize) {
     let top = hex(FOLDERS[k % FOLDERS.len()], 1.0);
-    let back = koon_ui::mix(top, [0.0, 0.0, 0.0, 1.0], 0.16);
+    let back = hook_ui::mix(top, [0.0, 0.0, 0.0, 1.0], 0.16);
     let (w, h) = (r.w, r.w / 1.3);
     let body = R::new(r.x, r.y + r.h - h, w, h);
     let tab = h * 0.17;
@@ -825,7 +825,7 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
     let field = R::new(r.x + 46.0, r.y + 11.0, r.w - 62.0, 34.0);
     if let Some(i) = p.asking {
         if let Some(path) = p.cards[i].full.take()
-            && let Some(img) = std::fs::read(path).ok().and_then(|b| koon_core::Image::decode_png(&b).ok())
+            && let Some(img) = std::fs::read(path).ok().and_then(|b| hook_core::Image::decode_png(&b).ok())
         {
             p.cards[i].thumb = Some(img.fit(1400));
         }
@@ -833,7 +833,7 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
         let key = id(&["palette", "ask"]);
         ui.s.focus = Some(key);
         ui.icon("bookmark-plus", r.x + 16.0, r.y + 19.0, 18.0, accent());
-        let res = koon_ui::widgets::text_field(ui, key, field, &mut p.text, &format!("¿Qué querés hacer con «{}»?", c.name), Face::Sans400, 15.0, ink());
+        let res = hook_ui::widgets::text_field(ui, key, field, &mut p.text, &format!("¿Qué querés hacer con «{}»?", c.name), Face::Sans400, 15.0, ink());
         ui.rect(R::new(r.x, r.y + 56.0, r.w, 1.0), 0.0, edge());
         let big = R::new(r.x + 16.0, r.y + 68.0, r.w - 32.0, list_h - 56.0);
         thumb(ui, c, big);
@@ -845,7 +845,7 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
         if res.submitted.is_some() && !p.text.trim().is_empty() {
             out = Some(PaletteOut::Use(c.id.clone(), p.text.trim().to_string()));
         }
-        if ui.key(koon_ui::Key::Escape).is_some() {
+        if ui.key(hook_ui::Key::Escape).is_some() {
             p.asking = None;
             p.text.clear();
         }
@@ -859,17 +859,17 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
         } else {
             format!("Buscar en {}", p.dir.rsplit('/').next().unwrap_or(&p.dir))
         };
-        let res = koon_ui::widgets::text_field(ui, key, field, &mut p.query, &hint, Face::Sans400, 15.0, ink());
+        let res = hook_ui::widgets::text_field(ui, key, field, &mut p.query, &hint, Face::Sans400, 15.0, ink());
         if p.query != before {
             p.sel = 0;
         }
         ui.rect(R::new(r.x, r.y + 56.0, r.w, 1.0), 0.0, edge());
         let total = folders.len() + rows.len();
         let browsing = p.query.is_empty();
-        if (browsing && ui.key(koon_ui::Key::Right).is_some()) || ui.key(koon_ui::Key::Down).is_some() {
+        if (browsing && ui.key(hook_ui::Key::Right).is_some()) || ui.key(hook_ui::Key::Down).is_some() {
             p.sel = (p.sel + 1).min(total.saturating_sub(1));
         }
-        if (browsing && ui.key(koon_ui::Key::Left).is_some()) || ui.key(koon_ui::Key::Up).is_some() {
+        if (browsing && ui.key(hook_ui::Key::Left).is_some()) || ui.key(hook_ui::Key::Up).is_some() {
             p.sel = p.sel.saturating_sub(1);
         }
         let mut y = r.y + 60.0;
@@ -881,7 +881,7 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
             let hot = ui.hovered(ck);
             if hot {
                 ui.rect(cr, 8.0, [1.0, 1.0, 1.0, 0.06]);
-                ui.cursor(koon_ui::Cursor::Pointer);
+                ui.cursor(hook_ui::Cursor::Pointer);
             }
             let b = ui.baseline(Face::Sans500, 13.0, cr.y + cr.h / 2.0);
             let mut x = ui.text(cr.x + 10.0, b, "‹  Memories", Face::Sans500, 13.0, muted());
@@ -905,7 +905,7 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
             ui.region(cell, fk);
             let hot = ui.hovered(fk);
             if hot {
-                ui.cursor(koon_ui::Cursor::Pointer);
+                ui.cursor(hook_ui::Cursor::Pointer);
             }
             if k == p.sel {
                 ui.rect(R::new(cell.x + 4.0, cell.y + 4.0, cell.w - 8.0, cell.h - 8.0), 14.0, [1.0, 1.0, 1.0, 0.06]);
@@ -937,7 +937,7 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
             let rk = id(&["palette", "row", &c.id]);
             ui.region(row, rk);
             if ui.hovered(rk) {
-                ui.cursor(koon_ui::Cursor::Pointer);
+                ui.cursor(hook_ui::Cursor::Pointer);
             }
             if Some(k) == sel_row {
                 ui.rect(row, 12.0, [1.0, 1.0, 1.0, 0.08]);
@@ -979,7 +979,7 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
             ui.region(cell, dk);
             if ui.hovered(rk) || over || doomed {
                 if over {
-                    ui.cursor(koon_ui::Cursor::Pointer);
+                    ui.cursor(hook_ui::Cursor::Pointer);
                 }
                 if ui.clicked(dk) {
                     if doomed {
@@ -1009,13 +1009,13 @@ pub fn palette(ui: &mut Ui, area: R, p: &mut Palette) -> Option<PaletteOut> {
             p.query.clear();
             p.sel = 0;
             p.doomed = None;
-        } else if ui.key(koon_ui::Key::Escape).is_some() {
+        } else if ui.key(hook_ui::Key::Escape).is_some() {
             if p.dir.is_empty() || !p.query.trim().is_empty() {
                 out = Some(PaletteOut::Close);
             } else {
                 p.up();
             }
-        } else if ui.key(koon_ui::Key::Backspace).is_some() && before.is_empty() && !p.dir.is_empty() {
+        } else if ui.key(hook_ui::Key::Backspace).is_some() && before.is_empty() && !p.dir.is_empty() {
             p.up();
         }
     }

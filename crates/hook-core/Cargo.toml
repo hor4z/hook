@@ -1,6 +1,6 @@
 [package]
-name = "koon-core"
-description = "koon data model, on-disk store and image composition"
+name = "hook-core"
+description = "hook data model, on-disk store and image composition"
 version.workspace = true
 edition.workspace = true
 

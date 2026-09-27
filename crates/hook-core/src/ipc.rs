@@ -4,17 +4,17 @@ use std::time::Duration;
 
 pub fn runtime_dir() -> PathBuf {
     let base = std::env::var_os("XDG_RUNTIME_DIR").filter(|v| !v.is_empty()).map(PathBuf::from).unwrap_or_else(std::env::temp_dir);
-    base.join("koon")
+    base.join("hook")
 }
 
 #[cfg(unix)]
 pub fn socket_path() -> PathBuf {
-    runtime_dir().join("koon.sock")
+    runtime_dir().join("hook.sock")
 }
 
 #[cfg(not(unix))]
 pub fn port_file() -> PathBuf {
-    runtime_dir().join("koon.port")
+    runtime_dir().join("hook.port")
 }
 
 pub fn send(cmd: &str) -> io::Result<String> {

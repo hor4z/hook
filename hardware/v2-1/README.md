@@ -1,4 +1,4 @@
-# Koon v2.1 — reference refinement
+# Hook v2.1 — reference refinement
 
 Visual refinement of v2, preserving the earlier version. Nominal outer envelope remains **64 × 100 × 34 mm**, plus the small button protrusion. One Blender coordinate unit and one STL coordinate unit represent one millimeter.
 
@@ -17,7 +17,7 @@ Visual refinement of v2, preserving the earlier version. Nominal outer envelope 
 
 ## Files
 
-- `koon-device-v2-1.blend`: editable v2.1 scene, with the earlier scenes retained.
+- `hook-device-v2-1.blend`: editable v2.1 scene, with the earlier scenes retained.
 - `renders/overview.png`: six views of the refinement.
 - `renders/comparison.png`: v2 versus v2.1 front views.
 - `V21_*_VISUAL.stl`: front, back and button geometry for shape evaluation.
@@ -28,7 +28,7 @@ This is still a visual prototype. The connector details and graphics are not pri
 ## Rebuild
 
 ```sh
-blender --background hardware/v2/koon-device-v2.blend --python hardware/v2-1/build.py
+blender --background hardware/v2/hook-device-v2.blend --python hardware/v2-1/build.py
 python3 hardware/v2-1/contact_sheet.py
 ```
 

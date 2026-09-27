@@ -3,20 +3,20 @@ import GLib from 'gi://GLib';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 const IFACE = `<node>
-  <interface name="dev.koon.Shell">
+  <interface name="dev.hook.Shell">
     <method name="Windows"><arg type="s" direction="out" name="json"/></method>
     <signal name="Changed"/>
   </interface>
 </node>`;
 
-export default class KoonExtension extends Extension {
+export default class HookExtension extends Extension {
     enable() {
         this._handlers = [];
         this._windows = new Map();
         this._pending = 0;
         this._dbus = Gio.DBusExportedObject.wrapJSObject(IFACE, this);
-        this._dbus.export(Gio.DBus.session, '/dev/koon/Shell');
-        this._name = Gio.bus_own_name_on_connection(Gio.DBus.session, 'dev.koon.Shell', Gio.BusNameOwnerFlags.REPLACE, null, null);
+        this._dbus.export(Gio.DBus.session, '/dev/hook/Shell');
+        this._name = Gio.bus_own_name_on_connection(Gio.DBus.session, 'dev.hook.Shell', Gio.BusNameOwnerFlags.REPLACE, null, null);
         const display = global.display;
         this._on(display, 'window-created', (_d, w) => this._track(w));
         this._on(display, 'restacked', () => this._changed());
